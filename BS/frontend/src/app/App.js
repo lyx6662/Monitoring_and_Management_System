@@ -13,7 +13,7 @@ import VideoPlayer from "../videoplayer/VideoPlayer";
 import { useAuth } from '../auth/auth';
 import React, { useState } from "react";
 import DOMPurify from "dompurify";
-import { BrowserRouter as Router, Routes, Route, Link, NavLink } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
 
 
 //路由保护
@@ -101,7 +101,7 @@ function Home() {
         <h1 style={{ textAlign: "center" }}>欢迎来到联源电器科技有限公司</h1>
 
         {/* System Introduction */}
-        <Function_Introduction />
+        <FunctionIntroduction />
 
         {/* AI Assistant */}
         <div className="ai-assistant">
@@ -170,7 +170,7 @@ function App() {
   );
 }
 
-function Function_Introduction() {
+function FunctionIntroduction() {
   return (
     <div className="introduction">
       <h2>系统介绍</h2>
