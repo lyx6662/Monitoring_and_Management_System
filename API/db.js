@@ -5,7 +5,7 @@ const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',          // 替换为你的MySQL用户名
   password: 'Wadwad2020a',   // 替换为你的MySQL密码
-  database: 'Device_Information',
+  database: 'lianyuan_database', // 替换为你的数据库名
   waitForConnections: true,
   connectionLimit: 10
 });

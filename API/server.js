@@ -1,17 +1,102 @@
 const express = require('express');
 const cors = require('cors');
-const pool = require('./db'); // 导入数据库连接
+const pool = require('./db');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-// 创建Express应用
 const app = express();
+app.use(cors());
+app.use(express.json());
 
-// 中间件配置
-app.use(cors()); // 允许跨域
-app.use(express.json()); // 解析JSON请求体
+// 用户注册
+app.post('/api/auth/register', async (req, res) => {
+  console.log('注册请求收到:', req.body);
+  const { username, password } = req.body;
+  
+  // 验证输入
+  if (!username || !password) {
+    return res.status(400).json({ error: '用户名和密码不能为空' });
+  }
 
-// 健康检查端点
-app.get('/', (req, res) => {
-  res.send('设备管理系统API运行中');
+  try {
+    // 检查用户名是否已存在
+    const [existingUsers] = await pool.query(
+      'SELECT id FROM user WHERE username = ?', 
+      [username]
+    );
+    
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ error: '用户名已存在' });
+    }
+
+    // 生成盐并哈希密码
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // 创建新用户
+    const [result] = await pool.query(
+      'INSERT INTO user (username, password_hash, salt) VALUES (?, ?, ?)',
+      [username, passwordHash, salt]
+    );
+
+    // 生成JWT Token
+    const token = jwt.sign(
+      { userId: result.insertId },
+      process.env.JWT_SECRET || 'your_secret_key',
+      { expiresIn: '1h' }
+    );
+
+    res.status(201).json({ token });
+  } catch (err) {
+    console.error('注册失败:', err);
+    res.status(500).json({ error: '注册失败' });
+  }
+});
+
+// 用户登录
+app.post('/api/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  if (!username || !password) {
+    return res.status(400).json({ error: '用户名和密码不能为空' });
+  }
+
+  try {
+    // 查找用户
+    const [users] = await pool.query(
+      'SELECT id, username, password_hash, salt FROM user WHERE username = ?',
+      [username]
+    );
+    
+    if (users.length === 0) {
+      return res.status(401).json({ error: '用户名或密码错误' });
+    }
+
+    const user = users[0];
+    
+    // 验证密码
+    const isValidPassword = await bcrypt.compare(
+      password, 
+      user.password_hash
+    );
+    
+    if (!isValidPassword) {
+      return res.status(401).json({ error: '用户名或密码错误' });
+    }
+
+    // 生成JWT Token
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET || 'your_secret_key',
+      { expiresIn: '1h' }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    console.error('登录失败:', err);
+    res.status(500).json({ error: '登录失败' });
+  }
 });
 
 // 获取所有设备
