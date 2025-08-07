@@ -3,11 +3,60 @@ const cors = require('cors');
 const pool = require('./db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const https = require('https');
+const fs = require('fs');
+const axios = require('axios');
+
+
+
+
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
+
+//获取ai聊天结果
+app.post('/api/ai-chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+    
+    const response = await axios.post(
+      'https://api.suanli.cn/v1/chat/completions',
+      {
+        model: "free:QwQ-32B",
+        messages
+      },
+      {
+        headers: {
+          'Authorization': 'Bearer sk-W0rpStc95T7JVYVwDYc29IyirjtpPPby6SozFMQr17m8KWeo',
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('AI接口错误:', error.response?.data || error.message);
+    res.status(500).json({ error: 'AI服务调用失败' });
+  }
+});
+
+
+
+//获取二维码
+app.get('/api/qrcode', (req, res) => {
+  https.get('https://api.2dcode.biz/v1/create-qr-code?data=Example', (apiRes) => {
+    apiRes.pipe(res); // 将二维码图片流直接转发给前端
+  });
+});
+
+
 
 // 用户注册
 app.post('/api/auth/register', async (req, res) => {
