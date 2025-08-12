@@ -26,6 +26,7 @@ function Login() {
 
   // 页面加载时从localStorage读取保存的账号（如果勾选了记住密码）
   useEffect(() => {
+    document.title = "登录 - 联源电气智能监控系统";
     const savedAccount = localStorage.getItem('savedAccount');
     const savedPassword = localStorage.getItem('savedPassword');
     if (savedAccount && savedPassword) {

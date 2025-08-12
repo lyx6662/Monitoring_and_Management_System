@@ -1,9 +1,32 @@
-// src/Sidebar/Sidebar.js
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import '../css/all.css';
 
+// 定义路由与标题的映射关系
+const routeTitles = {
+  '/': '联源电气智能监控系统',
+  '/devices': '设备列表',
+  '/equipmentvideoplayback': '设备视频播放',
+  '/alarmManage': '报警管理',
+  '/lineManage': '线路管理',
+  '/provinceManage': '省份管理',
+  '/realTimeMonitoring': '实时监控',
+  '/settings': '设置',
+  '/warningAnalysis': '报警分析',
+  '/workorderManage': '工单管理',
+  '/video-player': '设备视频',
+  '/personalInformation': '个人信息编辑',
+};
+
 const Sidebar = () => {
+  const location = useLocation();
+
+  // 当路由变化时更新页面标题
+  useEffect(() => {
+    const currentTitle = routeTitles[location.pathname] || '联源电气智能监控系统';
+    document.title = currentTitle;
+  }, [location.pathname]);
+
   return (
     <div className="sidebar">
       <h2>这是目录</h2>
@@ -52,3 +75,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+    
