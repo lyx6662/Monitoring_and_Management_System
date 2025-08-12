@@ -1,240 +1,431 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../css/all.css';
+import Sidebar from '../Sidebar/Sidebar';
 
+// 初始表单状态
+const initialDeviceState = {
+  device_name: "",
+  device_code: "",
+  province: "",
+  city: "",
+  location: "",
+  user_id: "",
+  install_time: new Date().toISOString().slice(0, 16) // 默认当前时间
+};
+
+// ========== 封装的 API 方法 ========== //
+const fetchDeviceList = async (setDevices, setError, setLoading) => {
+  try {
+    const response = await axios.get("http://localhost:5000/api/devices");
+    // 处理API返回数据中的null/undefined值
+    const processedDevices = response.data.map(device => ({
+      ...device,
+      device_code: device.device_code || "",
+      install_time: device.install_time || new Date().toISOString()
+    }));
+    setDevices(processedDevices);
+  } catch (err) {
+    setError("无法加载设备列表: " + (err.response?.data?.error || err.message));
+    console.error("获取设备失败:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
+  try {
+    const push_url = `没有`;
+    const pull_url = `点击按钮获取`;
+
+    const response = await axios.post("http://localhost:5000/api/devices", {
+      ...newDevice,
+      push_url,
+      pull_url,
+      device_code: newDevice.device_code || null
+    });
+
+    setSuccess(response.data.message);
+    fetchDevices();
+    return initialDeviceState; // 返回初始状态
+  } catch (err) {
+    setError(err.response?.data.error || "添加设备失败");
+    return null;
+  }
+};
+
+const updateDevice = async (deviceId, deviceData, setSuccess, setError, fetchDevices) => {
+  try {
+    await axios.put(`http://localhost:5000/api/devices/${deviceId}`, {
+      ...deviceData,
+      device_code: deviceData.device_code || null
+    });
+    setSuccess("设备更新成功");
+    fetchDevices();
+  } catch (err) {
+    setError("更新失败: " + (err.response?.data?.error || err.message));
+  }
+};
+
+// ========== DeviceList 组件 ========== //
 const DeviceList = () => {
+  const navigate = useNavigate();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [newDevice, setNewDevice] = useState({ id: "", name: "", date: "" });
   const [success, setSuccess] = useState("");
+  const [editingDevice, setEditingDevice] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [newDevice, setNewDevice] = useState(initialDeviceState);
 
-  // 定义可选的设备名称列表
-  const deviceNameOptions = [
-    "温度传感器",
-    "变压器在线监测系统",
-    "GIS在线监测系统",
-    "电缆在线监测系统",
-    "箱体在线监测系统",
-    "智能辅助控制系统",
-    "电机设备在线监测系统"
-  ];
+  // 从 token 获取当前用户 ID
+  const getCurrentUserId = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return null;
+    }
 
-  useEffect(() => {
-    fetchDevices();
-  }, []);
-
-  const fetchDevices = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/devices");
-      setDevices(response.data);
-    } catch (err) {
-      setError("无法加载设备列表: " + (err.response?.data?.error || err.message));
-      console.error("获取设备失败:", err);
-    } finally {
-      setLoading(false);
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      if (decoded.exp * 1000 < Date.now()) {
+        localStorage.removeItem('token');
+        navigate('/login');
+        return null;
+      }
+      return decoded.userId || decoded.id;
+    } catch (e) {
+      console.error('解析 token 失败:', e);
+      localStorage.removeItem('token');
+      navigate('/login');
+      return null;
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewDevice({ ...newDevice, [name]: value });
+  useEffect(() => {
+    const userId = getCurrentUserId();
+    if (userId) {
+      setCurrentUserId(userId);
+      setNewDevice(prev => ({ ...prev, user_id: userId }));
+      fetchDeviceList(setDevices, setError, setLoading);
+    }
+  }, []);
+
+  const fetchDevices = () => {
+    fetchDeviceList(setDevices, setError, setLoading);
   };
 
   const addDevice = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post("http://localhost:5000/devices", newDevice);
-      setSuccess(response.data.message);
-      setNewDevice({ id: "", name: "", date: "" });
-      fetchDevices(); // 刷新列表
-    } catch (err) {
-      setError(err.response?.data.error || "Failed to add device");
-    }
+    const clearedForm = await addNewDevice(newDevice, setSuccess, setError, fetchDevices);
+    if (clearedForm) setNewDevice(clearedForm);
   };
 
-  const handleDelete = async (id) => {
+  const startEdit = (device) => {
+    setEditingDevice({
+      ...device,
+      device_code: device.device_code || "",
+      install_time: device.install_time
+        ? device.install_time.slice(0, 16)
+        : new Date().toISOString().slice(0, 16)
+    });
+  };
+
+  const saveEdit = async () => {
+    await updateDevice(editingDevice.device_id, editingDevice, setSuccess, setError, fetchDevices);
+    setEditingDevice(null);
+  };
+
+  const handleDelete = async (device_id) => {
     try {
-      await axios.delete(`http://localhost:5000/devices/${id}`);
-      setDevices(devices.filter(device => device.id !== id));
+      await axios.delete(`http://localhost:5000/api/devices/${device_id}`);
+      setSuccess("设备删除成功");
+      setDevices(devices.filter(device => device.device_id !== device_id));
     } catch (err) {
       setError("删除失败: " + (err.response?.data?.error || err.message));
     }
   };
 
-  // 按照name分组设备
-  const groupDevicesByName = () => {
-    const groups = {};
-    devices.forEach(device => {
-      if (!groups[device.name]) {
-        groups[device.name] = [];
+  const fetchStreamUrl = async (deviceId, deviceCode) => {
+    try {
+      setLoading(true);
+
+      // 1. 首先获取播流地址
+      const streamResponse = await axios.post(
+        `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+        { device_code: deviceCode }
+      );
+
+      if (streamResponse.data.streamUrl) {
+        // 2. 然后更新数据库中的播流地址
+        const updateResponse = await axios.put(
+          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+          { pull_url: streamResponse.data.streamUrl }
+        );
+
+        // 3. 更新前端状态
+        setDevices(devices.map(device =>
+          device.device_id === deviceId
+            ? { ...device, pull_url: streamResponse.data.streamUrl }
+            : device
+        ));
+
+        setSuccess("播流地址获取并更新成功: " + streamResponse.data.streamUrl);
+      } else {
+        setError("未能获取有效的播流地址");
       }
-      groups[device.name].push(device);
-    });
-    return groups;
+    } catch (err) {
+      setError("获取或更新播流地址失败: " + (err.response?.data?.error || err.message));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deviceGroups = groupDevicesByName();
+  // 新增：调用关闭播流接口的函数
+  const handleStopStream = async (deviceCode, deviceId) => {
+    if (!deviceCode) {
+      setError("设备代码不能为空，无法关闭播流");
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "http://localhost:5000/api/devices/stop-stream",
+        { deviceCode }
+      );
+      if (response.data.success) {
+        // 关闭播流成功后，更新数据库中的播流地址
+        await axios.put(
+          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+          { pull_url: "播流地址还没开放" }
+        );
+        setSuccess("播流已成功关闭");
+        fetchDevices();
+      } else {
+        setError("关闭播流失败: " + (response.data.error || "未知错误"));
+      }
+    } catch (err) {
+      setError("关闭播流出错: " + (err.response?.data?.error || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!currentUserId) {
+    return null;
+  }
 
   return (
     <div className="app-container">
-      {/* 复用相同的侧边导航栏 */}
-      <div className="sidebar">
-        <h2>这是目录</h2>
-        <nav>
-          <ul className="nav-menu">
-            <li className="nav-item">
-              <NavLink to="/" className="nav-link" end>主页</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/devices" className="nav-link">设备列表</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/alarmManage" className="nav-link">报警管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/lineManage" className="nav-link">线路管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/pictureRotation" className="nav-link">图片轮播</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/provinceManage" className="nav-link">省份管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/realTimeMonitoring" className="nav-link">实时监控</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/settings" className="nav-link">设置</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/warningAnalysis" className="nav-link">报警分析</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/workorderManage" className="nav-link">工单管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/video-player" className="nav-link">设备视频</NavLink>
-            </li>
-          </ul>
-        </nav>
-      </div>
-
-      {/* 设备列表的主内容区 */}
+      <Sidebar />
       <div className="main-content">
-        <h1>设备列表</h1>
-        
+        <h1>设备管理</h1>
+
         {/* 添加设备表单 */}
-        <div style={{ marginBottom: "30px", padding: "20px", border: "1px solid #eee", borderRadius: "4px" }}>
-          <h2>添加新设备</h2>
-          <form onSubmit={addDevice}>
-            <div style={{ marginBottom: "10px" }}>
-              <label style={{ marginRight: "10px" }}>ID: </label>
+        <div className="device-form">
+          <h2>{editingDevice ? "编辑设备" : "添加新设备"}</h2>
+          <form onSubmit={editingDevice ? saveEdit : addDevice}>
+            {/* 设备名称 */}
+            <div className="form-group">
+              <label className="form-label">设备名称: </label>
               <input
                 type="text"
-                name="id"
-                value={newDevice.id}
-                onChange={handleInputChange}
+                name="device_name"
+                value={editingDevice ? editingDevice.device_name || "" : newDevice.device_name || ""}
+                onChange={(e) => editingDevice
+                  ? setEditingDevice({ ...editingDevice, device_name: e.target.value })
+                  : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                }
                 required
-                style={{ padding: "5px" }}
+                className="form-input"
               />
             </div>
-            <div style={{ marginBottom: "10px" }}>
-              <label style={{ marginRight: "10px" }}>Name: </label>
-              <select
-                name="name"
-                value={newDevice.name}
-                onChange={handleInputChange}
-                required
-                style={{ padding: "5px", width: "250px" }}
-              >
-                <option value="">-- 请选择设备类型 --</option>
-                {deviceNameOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={{ marginBottom: "10px" }}>
-              <label style={{ marginRight: "10px" }}>Date: </label>
+
+            {/* 设备代码 */}
+            <div className="form-group">
+              <label className="form-label">设备代码: </label>
               <input
-                type="date"
-                name="date"
-                value={newDevice.date}
-                onChange={handleInputChange}
-                required
-                style={{ padding: "5px" }}
+                type="number"
+                name="device_code"
+                value={editingDevice ? editingDevice.device_code || "" : newDevice.device_code || ""}
+                onChange={(e) => editingDevice
+                  ? setEditingDevice({ ...editingDevice, device_code: e.target.value || null })
+                  : setNewDevice({ ...newDevice, [e.target.name]: e.target.value || null })
+                }
+                className="form-input"
+                placeholder="可选"
               />
             </div>
-            <button 
-              type="submit" 
-              style={{ 
-                padding: "5px 15px", 
-                backgroundColor: "#4CAF50", 
-                color: "white", 
-                border: "none", 
-                borderRadius: "4px", 
-                cursor: "pointer" 
-              }}
-            >
-              添加设备
-            </button>
+
+            {/* 省份和城市 */}
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">省份: </label>
+                <input
+                  type="text"
+                  name="province"
+                  value={editingDevice ? editingDevice.province || "" : newDevice.province || ""}
+                  onChange={(e) => editingDevice
+                    ? setEditingDevice({ ...editingDevice, province: e.target.value })
+                    : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                  }
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">城市: </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={editingDevice ? editingDevice.city || "" : newDevice.city || ""}
+                  onChange={(e) => editingDevice
+                    ? setEditingDevice({ ...editingDevice, city: e.target.value })
+                    : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                  }
+                  required
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            {/* 详细位置 */}
+            <div className="form-group">
+              <label className="form-label">详细位置: </label>
+              <input
+                type="text"
+                name="location"
+                value={editingDevice ? editingDevice.location || "" : newDevice.location || ""}
+                onChange={(e) => editingDevice
+                  ? setEditingDevice({ ...editingDevice, location: e.target.value })
+                  : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                }
+                required
+                className="form-input"
+              />
+            </div>
+
+            {/* 用户ID和安装时间 */}
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">用户ID: </label>
+                <input
+                  type="text"
+                  name="user_id"
+                  value={currentUserId || ""}
+                  readOnly
+                  className="form-input disabled-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">安装时间: </label>
+                <input
+                  type="datetime-local"
+                  name="install_time"
+                  value={editingDevice ? editingDevice.install_time || "" : newDevice.install_time || ""}
+                  onChange={(e) => editingDevice
+                    ? setEditingDevice({ ...editingDevice, install_time: e.target.value })
+                    : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                  }
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="submit-button">
+                {editingDevice ? "保存修改" : "添加设备"}
+              </button>
+              {editingDevice && (
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setEditingDevice(null)}
+                >
+                  取消
+                </button>
+              )}
+            </div>
           </form>
-          {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
-          {success && <p style={{ color: "green", marginTop: "10px" }}>{success}</p>}
+
+          {error && <p className="error-message">{error}</p>}
+          {success && <p className="success-message">{success}</p>}
         </div>
 
-        {/* 按名称分组的设备表格 */}
+        {/* 设备列表展示 */}
         {loading ? (
           <p>加载中...</p>
         ) : devices.length === 0 ? (
           <p>没有找到设备</p>
         ) : (
-          Object.entries(deviceGroups).map(([name, devices]) => (
-            <div key={name} style={{ marginBottom: "30px" }}>
-              <h2>{name}</h2>
-              <table style={{ 
-                width: "100%", 
-                borderCollapse: "collapse",
-                border: "1px solid #ddd"
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: "#f2f2f2" }}>
-                    <th style={{ padding: "12px", textAlign: "left", border: "1px solid #ddd" }}>ID</th>
-                    <th style={{ padding: "12px", textAlign: "left", border: "1px solid #ddd" }}>日期</th>
-                    <th style={{ padding: "12px", textAlign: "left", border: "1px solid #ddd" }}>操作</th>
+          <div className="device-list">
+            <table className="device-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>名称</th>
+                  <th>设备代码</th>
+                  <th>推流地址</th>
+                  <th>拉流地址</th>
+                  <th>位置</th>
+                  <th>状态</th>
+                  <th>安装时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {devices.map(device => (
+                  <tr key={device.device_id}>
+                    <td>{device.device_id}</td>
+                    <td>{device.device_name}</td>
+                    <td>{device.device_code || '-'}</td>
+                    <td className="url-cell">{device.push_url}</td>
+                    <td className="url-cell">{device.pull_url}</td>
+                    <td>{`${device.province}${device.city}${device.location}`}</td>
+                    <td>
+                      <span className={`status-${device.status === 1 ? 'active' : 'inactive'}`}>
+                        {device.status === 1 ? '在线' : '离线'}
+                      </span>
+                    </td>
+                    <td>{new Date(device.install_time).toLocaleString()}</td>
+                    <td className="actions-cell">
+                      <button
+                        onClick={() => startEdit(device)}
+                        className="edit-button"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        onClick={() => handleDelete(device.device_id)}
+                        className="delete-button"
+                      >
+                        删除
+                      </button>
+                      <button
+                        onClick={() => fetchStreamUrl(device.device_id, device.device_code)}
+                        className="stream-button"
+                        disabled={!device.device_code}
+                        title={!device.device_code ? "需要先设置设备代码" : ""}
+                      >
+                        获取播流地址
+                      </button>
+                      <button
+                        onClick={() => handleStopStream(device.device_code, device.device_id)}
+                        className="stop-stream-button"
+                        disabled={!device.device_code || !device.pull_url}
+                        title={!device.device_code ? "需要设备代码" : (!device.pull_url ? "没有活跃的播流" : "")}
+                      >
+                        关闭播流
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {devices.map(device => (
-                    <tr key={device.id} style={{ borderBottom: "1px solid #ddd" }}>
-                      <td style={{ padding: "12px", border: "1px solid #ddd" }}>{device.id}</td>
-                      <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                        {new Date(device.date).toLocaleDateString()}
-                      </td>
-                      <td style={{ padding: "12px", border: "1px solid #ddd" }}>
-                        <button 
-                          onClick={() => handleDelete(device.id)}
-                          style={{ 
-                            color: "white",
-                            backgroundColor: "#f44336",
-                            border: "none",
-                            borderRadius: "4px",
-                            padding: "5px 10px",
-                            cursor: "pointer"
-                          }}
-                        >
-                          删除
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

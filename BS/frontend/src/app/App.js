@@ -3,22 +3,50 @@ import DeviceList from "../devicelist/DeviceList";
 import AlarmManage from "../alarmManage/alarmManage";
 import Login from "../login/login";
 import LineManage from "../lineManage/lineManage";
-import PictureRotation from "../pictureRotation/pictureRotation";
+import EquipmentVideoPlayback from "../EquipmentVideoPlayback/EquipmentVideoPlayback";
 import ProvinceManage from "../provinceManage/provinceManage";
 import RealTimeMonitoring from "../realTimeMonitoring/realTimeMonitoring";
 import Settings from "../settings/settings";
 import WarningAnalysis from "../warningAnalysis/warningAnalysis";
 import WorkorderManage from "../workorderManage/workorderManage";
 import VideoPlayer from "../videoplayer/VideoPlayer";
+import PersonalInformation from '../PersonalInformation/personalInformation';
 import { useAuth } from '../auth/auth';
 import React, { useState } from "react";
 import DOMPurify from "dompurify";
-import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
-
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import Sidebar from '../Sidebar/Sidebar';
 
 //路由保护
 function RouteGuard({ children }) {
   const { isAuthenticated } = useAuth();
+  
+  // 从localStorage获取token并解析出用户ID
+  const getUserId = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+      // 解析JWT的payload部分（通常是第二部分）
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      // 检查token是否过期
+      if (decoded.exp * 1000 < Date.now()) {
+        localStorage.removeItem('token');
+        return null;
+      }
+      return decoded.userId || decoded.id; // 根据实际token结构调整字段名
+    } catch (e) {
+      console.error('解析token失败:', e);
+      return null;
+    }
+  };
+  
+  const userId = getUserId();
+  
+  // 打印登录状态和用户ID
+  console.log('当前路由保护状态:', isAuthenticated);
+  console.log('当前登录账户ID:', userId);
+  
   return isAuthenticated ? children : null;
 }
 
@@ -55,50 +83,11 @@ function Home() {
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
-      <div className="sidebar">
-        <h2>这是目录</h2>
-        <nav>
-          <ul className="nav-menu">
-            <li className="nav-item">
-              <NavLink to="/" className="nav-link" end>主页</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/devices" className="nav-link">设备列表</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/alarmManage" className="nav-link">报警管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/lineManage" className="nav-link">线路管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/pictureRotation" className="nav-link">图片轮播</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/provinceManage" className="nav-link">省份管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/realTimeMonitoring" className="nav-link">实时监控</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/settings" className="nav-link">设置</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/warningAnalysis" className="nav-link">报警分析</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/workorderManage" className="nav-link">工单管理</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/video-player" className="nav-link">设备视频</NavLink>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      <Sidebar />
 
       {/* Main Content Area */}
       <div className="main-content">
-        <h1 style={{ textAlign: "center" }}>欢迎来到联源电器科技有限公司</h1>
+        <h1 style={{ textAlign: "center" }}>欢迎来到联源电气科技有限公司</h1>
 
         {/* System Introduction */}
         <FunctionIntroduction />
@@ -155,13 +144,15 @@ function App() {
               <Route path="/devices" element={<DeviceList />} />
               <Route path="/alarmManage" element={<AlarmManage />} />
               <Route path="/lineManage" element={<LineManage />} />
-              <Route path="/pictureRotation" element={<PictureRotation />} />
+              <Route path="/equipmentvideoplayback" element={<EquipmentVideoPlayback />} />
               <Route path="/provinceManage" element={<ProvinceManage />} />
               <Route path="/realTimeMonitoring" element={<RealTimeMonitoring />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/warningAnalysis" element={<WarningAnalysis />} />
               <Route path="/workorderManage" element={<WorkorderManage />} />
               <Route path="/video-player" element={<VideoPlayer />} />
+              <Route path="/personalInformation" element={<PersonalInformation />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </RouteGuard>
         } />
