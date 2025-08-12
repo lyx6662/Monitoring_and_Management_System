@@ -15,7 +15,7 @@ const VideoPlayer = () => {
   useEffect(() => {
     const loadQRCode = async () => {
       try {
-        const res = await fetch(`http://3.85.80.40:5000/api/qrcode?t=${Date.now()}`);
+        const res = await fetch(`http://localhost:5000/api/qrcode?t=${Date.now()}`);
         if (!res.ok) throw new Error("二维码加载失败");
         const blob = await res.blob();
         setQrCodeUrl(URL.createObjectURL(blob));

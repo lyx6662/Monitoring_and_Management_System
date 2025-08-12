@@ -18,7 +18,7 @@ const initialDeviceState = {
 // ========== 封装的 API 方法 ========== //
 const fetchDeviceList = async (setDevices, setError, setLoading) => {
   try {
-    const response = await axios.get("http://3.85.80.40:5000/api/devices");
+    const response = await axios.get("http://localhost:5000/api/devices");
     // 处理API返回数据中的null/undefined值
     const processedDevices = response.data.map(device => ({
       ...device,
@@ -39,7 +39,7 @@ const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
     const push_url = `没有`;
     const pull_url = `点击按钮获取`;
 
-    const response = await axios.post("http://3.85.80.40:5000/api/devices", {
+    const response = await axios.post("http://localhost:5000/api/devices", {
       ...newDevice,
       push_url,
       pull_url,
@@ -57,7 +57,7 @@ const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
 
 const updateDevice = async (deviceId, deviceData, setSuccess, setError, fetchDevices) => {
   try {
-    await axios.put(`http://3.85.80.40:5000/api/devices/${deviceId}`, {
+    await axios.put(`http://localhost:5000/api/devices/${deviceId}`, {
       ...deviceData,
       device_code: deviceData.device_code || null
     });
@@ -139,7 +139,7 @@ const DeviceList = () => {
 
   const handleDelete = async (device_id) => {
     try {
-      await axios.delete(`http://3.85.80.40:5000/api/devices/${device_id}`);
+      await axios.delete(`http://localhost:5000/api/devices/${device_id}`);
       setSuccess("设备删除成功");
       setDevices(devices.filter(device => device.device_id !== device_id));
     } catch (err) {
@@ -153,14 +153,14 @@ const DeviceList = () => {
 
       // 1. 首先获取播流地址
       const streamResponse = await axios.post(
-        `http://3.85.80.40:5000/api/devices/${deviceId}/stream-url`,
+        `http://localhost:5000/api/devices/${deviceId}/stream-url`,
         { device_code: deviceCode }
       );
 
       if (streamResponse.data.streamUrl) {
         // 2. 然后更新数据库中的播流地址
         const updateResponse = await axios.put(
-          `http://3.85.80.40:5000/api/devices/${deviceId}/stream-url`,
+          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
           { pull_url: streamResponse.data.streamUrl }
         );
 
@@ -191,13 +191,13 @@ const DeviceList = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://3.85.80.40:5000/api/devices/stop-stream",
+        "http://localhost:5000/api/devices/stop-stream",
         { deviceCode }
       );
       if (response.data.success) {
         // 关闭播流成功后，更新数据库中的播流地址
         await axios.put(
-          `http://3.85.80.40:5000/api/devices/${deviceId}/stream-url`,
+          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
           { pull_url: "播流地址还没开放" }
         );
         setSuccess("播流已成功关闭");

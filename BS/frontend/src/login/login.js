@@ -47,7 +47,7 @@ function Login() {
 
     try {
       const response = await axios.post(
-        'http://3.85.80.40:5000/api/auth/login',
+        'http://localhost:5000/api/auth/login',
         { account, password }
       );
 
@@ -110,7 +110,7 @@ function Login() {
 
     try {
       const response = await axios.post(
-        'http://3.85.80.40:5000/api/auth/register',
+        'http://localhost:5000/api/auth/register',
         registerData
       );
 
