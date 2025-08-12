@@ -39,7 +39,7 @@ const EquipmentVideoPlayback = () => {
   useEffect(() => {
     const fetchDevices = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/devices');
+        const response = await fetch('http://3.85.80.40:5000/api/devices');
         if (!response.ok) {
           throw new Error('获取设备列表失败');
         }
