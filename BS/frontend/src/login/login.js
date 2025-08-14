@@ -9,6 +9,13 @@ function Login() {
   const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
 
+  // 验证码状态
+  const [captcha, setCaptcha] = useState({
+    imgUrl: '',
+    userAnswer: ''
+  });
+  const [showCaptcha, setShowCaptcha] = useState(false);
+
   // 注册状态
   const [registerData, setRegisterData] = useState({
     username: '',
@@ -17,14 +24,15 @@ function Login() {
     confirmPassword: '',
     email: '',
     address: '',
-    phone: ''
+    phone: '',
+    captchaAnswer: ''
   });
 
   const [error, setError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
 
-  // 页面加载时从localStorage读取保存的账号（如果勾选了记住密码）
+  // 页面加载时从localStorage读取保存的账号
   useEffect(() => {
     document.title = "登录 - 联源电气智能监控系统";
     const savedAccount = localStorage.getItem('savedAccount');
@@ -34,7 +42,34 @@ function Login() {
       setPassword(savedPassword);
       setRememberPassword(true);
     }
-  }, []);
+
+    // 注册页面默认显示验证码
+    if (isRegistering) {
+      fetchCaptcha();
+    }
+  }, [isRegistering]);
+
+  // 获取验证码
+  const fetchCaptcha = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/captcha');
+      setCaptcha({
+        imgUrl: response.data.imgUrl,
+        userAnswer: ''
+      });
+      setShowCaptcha(true);
+
+      // 清空注册表单中的验证码答案
+      if (isRegistering) {
+        setRegisterData(prev => ({
+          ...prev,
+          captchaAnswer: ''
+        }));
+      }
+    } catch (error) {
+      setError('获取验证码失败，请重试');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -45,7 +80,32 @@ function Login() {
       return;
     }
 
+    if (showCaptcha && !captcha.userAnswer) {
+      setError('请输入验证码');
+      return;
+    }
+
     try {
+      // 验证验证码
+      if (showCaptcha) {
+        try {
+          const verifyRes = await axios.post('http://localhost:5000/api/verify-captcha', {
+            imgUrl: captcha.imgUrl,
+            userAnswer: captcha.userAnswer
+          });
+
+          if (!verifyRes.data.success) {
+            setError('验证码错误，已自动刷新');
+            await fetchCaptcha();
+            return;
+          }
+        } catch (verifyError) {
+          setError('验证码验证失败，已自动刷新');
+          await fetchCaptcha();
+          return;
+        }
+      }
+
       const response = await axios.post(
         'http://localhost:5000/api/auth/login',
         { account, password }
@@ -64,10 +124,15 @@ function Login() {
         localStorage.removeItem('savedPassword');
       }
 
-      // 跳转到首页
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || '登录失败');
+      // 账号密码错误或登录失败时刷新验证码
+      if (err.response?.status === 401) {
+        await fetchCaptcha();
+        setError('账号或密码错误，验证码已刷新');
+      } else {
+        setError(err.response?.data?.error || '登录失败');
+      }
     }
   };
 
@@ -75,11 +140,10 @@ function Login() {
     e.preventDefault();
     setError('');
 
-    // 表单验证
-    const { username, account, password, confirmPassword, phone } = registerData;
+    const { username, account, password, confirmPassword, phone, captchaAnswer } = registerData;
 
-    if (!username || !account || !password || !phone) {
-      setError('必填字段不能为空');
+    if (!username || !account || !password || !phone || !captchaAnswer) {
+      setError('所有必填字段不能为空');
       return;
     }
 
@@ -90,7 +154,7 @@ function Login() {
 
     if (account.length <= 4) {
       setError('账号必须大于5位');
-      return; 
+      return;
     }
 
     if (password.length <= 5) {
@@ -109,19 +173,46 @@ function Login() {
     }
 
     try {
+      // 验证验证码
+      try {
+        const verifyRes = await axios.post('http://localhost:5000/api/verify-captcha', {
+          imgUrl: captcha.imgUrl,
+          userAnswer: captchaAnswer
+        });
+
+        if (!verifyRes.data.success) {
+          setError('验证码错误，已自动刷新');
+          await fetchCaptcha();
+          return;
+        }
+      } catch (verifyError) {
+        setError('验证码验证失败，已自动刷新');
+        await fetchCaptcha();
+        return;
+      }
+
       const response = await axios.post(
         'http://localhost:5000/api/auth/register',
-        registerData
+        {
+          username,
+          account,
+          password,
+          email: registerData.email,
+          address: registerData.address,
+          phone
+        }
       );
 
-      // 存储Token和用户信息
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // 跳转到首页
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || '注册失败');
+      if (err.response?.status === 400) {
+        await fetchCaptcha();
+        setError(err.response?.data?.error || '注册失败，验证码已刷新');
+      } else {
+        setError(err.response?.data?.error || '注册失败');
+      }
     }
   };
 
@@ -134,8 +225,16 @@ function Login() {
   };
 
   const handleForgotPassword = () => {
-    // 这里可以添加忘记密码的处理逻辑
     alert('忘记密码功能待实现');
+  };
+
+  const toggleRegister = (e) => {
+    e.preventDefault();
+    setIsRegistering(!isRegistering);
+    setError('');
+    if (!isRegistering) {
+      fetchCaptcha();
+    }
   };
 
   return (
@@ -146,76 +245,121 @@ function Login() {
         {error && <div className="error-message">{error}</div>}
 
         {isRegistering ? (
-          <form onSubmit={handleRegister}>
-            <input
-              type="text"
-              name="username"
-              className="login-username"
-              placeholder="用户名必须3位及以上"
-              value={registerData.username}
-              onChange={handleRegisterChange}
-              required
-            />
+          <form onSubmit={handleRegister} className="register-form">
+            <div className="form-group">
+              <input
+                type="text"
+                name="username"
+                className="login-input"
+                placeholder="用户名必须3位及以上"
+                value={registerData.username}
+                onChange={handleRegisterChange}
+                required
+              />
+            </div>
 
-            <input
-              type="text"
-              name="account"
-              className="login-username"
-              placeholder="账号必须5位及以上"
-              value={registerData.account}
-              onChange={handleRegisterChange}
-              required
-            />
+            <div className="form-group">
+              <input
+                type="text"
+                name="account"
+                className="login-input"
+                placeholder="账号必须5位及以上"
+                value={registerData.account}
+                onChange={handleRegisterChange}
+                required
+              />
+            </div>
 
-            <input
-              type="password"
-              name="password"
-              className="login-password"
-              placeholder="密码必须6位及以上"
-              value={registerData.password}
-              onChange={handleRegisterChange}
-              required
-            />
+            <div className="form-group">
+              <input
+                type="password"
+                name="password"
+                className="login-input"
+                placeholder="密码必须6位及以上"
+                value={registerData.password}
+                onChange={handleRegisterChange}
+                required
+              />
+            </div>
 
-            <input
-              type="password"
-              name="confirmPassword"
-              className="login-password"
-              placeholder="确认密码"
-              value={registerData.confirmPassword}
-              onChange={handleRegisterChange}
-              required
-            />
+            <div className="form-group">
+              <input
+                type="password"
+                name="confirmPassword"
+                className="login-input"
+                placeholder="确认密码"
+                value={registerData.confirmPassword}
+                onChange={handleRegisterChange}
+                required
+              />
+            </div>
 
-            <input
-              type="tel"
-              name="phone"
-              className="login-username"
-              placeholder="手机号"
-              value={registerData.phone}
-              onChange={handleRegisterChange}
-              required
-            />
+            <div className="form-group">
+              <input
+                type="tel"
+                name="phone"
+                className="login-input"
+                placeholder="手机号"
+                value={registerData.phone}
+                onChange={handleRegisterChange}
+                required
+              />
+            </div>
 
-            <input
-              type="email"
-              name="email"
-              className="login-username"
-              placeholder="邮箱 (可选)"
-              value={registerData.email}
-              onChange={handleRegisterChange}
-            />
+            <div className="form-group">
+              <input
+                type="email"
+                name="email"
+                className="login-input"
+                placeholder="邮箱 (可选)"
+                value={registerData.email}
+                onChange={handleRegisterChange}
+              />
+            </div>
 
-            <input
-              type="text"
-              name="address"
-              className="login-username"
-              placeholder="地址 (可选)"
-              value={registerData.address}
-              onChange={handleRegisterChange}
-            />
+            <div className="form-group">
+              <input
+                type="text"
+                name="address"
+                className="login-input"
+                placeholder="地址 (可选)"
+                value={registerData.address}
+                onChange={handleRegisterChange}
+              />
+            </div>
 
-            <button type="submit" className="login-btn">
+            {showCaptcha && (
+              <div className="captcha-container">
+                <div className="captcha-row">
+                  <img
+                    src={captcha.imgUrl}
+                    alt="验证码"
+                    onClick={fetchCaptcha}
+                    className="captcha-img"
+                  />
+                  <span
+                    className="refresh-text"
+                    onClick={fetchCaptcha}
+                  >
+                    看不清？点击刷新
+                  </span>
+                </div>
+                <div className="captcha-input-group">
+                  <span className="captcha-text">{captcha.codeText}</span>
+                  <input
+                    type="text"
+                    name="captchaAnswer"
+                    className="captcha-input"
+                    placeholder="请输入验证码答案"
+                    value={registerData.captchaAnswer}
+                    onChange={handleRegisterChange}
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            <button type="submit" className="login-btn register-btn">
               立即注册
             </button>
           </form>
@@ -238,6 +382,38 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+
+            {showCaptcha && (
+              <div className="captcha-container">
+                <div className="captcha-row">
+                  <img
+                    src={captcha.imgUrl}
+                    alt="验证码"
+                    onClick={fetchCaptcha}
+                    className="captcha-img"
+                  />
+                  <span
+                    className="refresh-text"
+                    onClick={fetchCaptcha}
+                  >
+                    看不清？点击刷新
+                  </span>
+                </div>
+                <div className="captcha-row">
+                  <input
+                    type="text"
+                    className="captcha-input"
+                    placeholder="请输入验证码答案"
+                    value={captcha.userAnswer}
+                    onChange={(e) => setCaptcha({
+                      ...captcha,
+                      userAnswer: e.target.value
+                    })}
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="login-remember">
               <input
@@ -272,11 +448,7 @@ function Login() {
           <a
             href="#"
             className="login-link"
-            onClick={(e) => {
-              e.preventDefault();
-              setIsRegistering(!isRegistering);
-              setError('');
-            }}
+            onClick={toggleRegister}
           >
             {isRegistering ? '立即登录' : '立即注册'}
           </a>

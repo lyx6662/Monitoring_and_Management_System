@@ -1,3 +1,8 @@
+-- 设置服务器变量，确保会话使用正确的字符集
+SET NAMES utf8mb4;
+SET character_set_client = utf8mb4;
+SET character_set_connection = utf8mb4;
+SET character_set_results = utf8mb4;
 
 DROP DATABASE IF EXISTS lianyuan_database;
 
@@ -16,7 +21,7 @@ CREATE TABLE users (
   address VARCHAR(255),
   phone VARCHAR(20) NOT NULL UNIQUE,
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE devices (
   device_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -30,7 +35,7 @@ CREATE TABLE devices (
   status TINYINT NOT NULL DEFAULT 1 COMMENT '1=在线,0=离线',
   install_time DATETIME NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE device_status (
   status_id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -43,7 +48,7 @@ CREATE TABLE device_status (
   is_processed TINYINT NOT NULL DEFAULT 0 COMMENT '0=未处理,1=已处理',
   FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE,
   INDEX idx_device_time (device_id, record_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 ALTER TABLE devices
 ADD COLUMN device_code INT AFTER device_name;
@@ -97,3 +102,9 @@ INSERT INTO devices (
   1,  -- 在线状态
   '2025-08-12 02:43:00'
 );
+
+
+
+
+ALTER TABLE users MODIFY email VARCHAR(255) NULL;
+ALTER TABLE users DROP INDEX email;

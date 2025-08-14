@@ -20,69 +20,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// 启动设备RTMP推流的路由
-app.post('/api/start-stream', async (req, res) => {
-  try {
-    const deviceCode = '865522078460315'; // 固定设备编码
 
-    // 调用设备推流接口
-    const streamUrl = await startDeviceStreaming(deviceCode);
-
-    // 成功响应 - 返回播放地址
-    res.status(200).json({
-      code: 0,
-      message: '推流命令已发送',
-      playbackUrl: 'https://play.zhijingwuxian.com/quzhou/0811.flv?auth_key=1754895912-0-0-6ca1c0454250f00a16d27c11af470c02',
-      streamUrl: streamUrl
-    });
-
-    console.log('推流命令已发送，设备推流地址:', streamUrl);
-    console.log('请使用以下地址播放:', 'https://play.zhijingwuxian.com/quzhou/0811.flv?auth_key=1754895912-0-0-6ca1c0454250f00a16d27c11af470c02');
-
-  } catch (error) {
-    // 错误处理
-    console.error('推流请求失败:', error.message);
-    res.status(500).json({
-      code: -1,
-      message: `推流失败: ${error.message}`
-    });
-  }
-});
-
-// 设备推流函数
-async function startDeviceStreaming(deviceCode) {
-  const url = 'http://127.0.0.1:8080/v1/device/start-push-rtmp-stream';
-
-  // 请求参数
-  const params = {
-    'device-code': deviceCode,
-    'duration': 300,    // 固定300秒
-    'chann': 2          // 固定通道号2
-  };
-
-  const response = await axios.post(url, null, { params });
-
-  if (response.data.code === 0) {
-    return response.data.data; // 返回推流地址
-  } else {
-    throw new Error(`设备返回错误 ${response.data.code}: ${response.data.message}`);
-  }
-}
 
 //获取ai聊天结果
 app.post('/api/ai-chat', async (req, res) => {
   try {
     const { messages } = req.body;
 
+    // 添加系统消息作为第一条消息（如果不存在）
+    const formattedMessages = messages[0]?.role === 'system' 
+      ? messages 
+      : [
+          { role: 'system', content: '你是人工智能助手.' },
+          ...messages
+        ];
+
     const response = await axios.post(
-      'https://api.suanli.cn/v1/chat/completions',
+      'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
       {
-        model: "free:QwQ-32B",
-        messages
+        model: "kimi-k2-250711",
+        messages: formattedMessages
       },
       {
         headers: {
-          'Authorization': 'Bearer sk-W0rpStc95T7JVYVwDYc29IyirjtpPPby6SozFMQr17m8KWeo',
+          'Authorization': 'Bearer 57048219-44a2-4176-aec7-70557e8407a1',
           'Content-Type': 'application/json'
         }
       }
@@ -91,7 +52,10 @@ app.post('/api/ai-chat', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('AI接口错误:', error.response?.data || error.message);
-    res.status(500).json({ error: 'AI服务调用失败' });
+    res.status(500).json({ 
+      error: 'AI服务调用失败',
+      details: error.response?.data || error.message
+    });
   }
 });
 
@@ -203,6 +167,55 @@ app.post('/api/auth/login', async (req, res) => {
     res.status(500).json({ error: '登录失败' });
   }
 });
+
+
+// 获取验证码接口
+app.get('/api/captcha', async (req, res) => {
+  try {
+    const response = await axios.get('http://shanhe.kim/api/za/yzmv1.php');
+    
+    // 将验证码答案存储在服务器内存中（生产环境应该使用Redis等）
+    const captchaStore = req.app.get('captchaStore') || {};
+    captchaStore[response.data.img] = response.data.answer;
+    req.app.set('captchaStore', captchaStore);
+    
+    res.json({
+      code: 200,
+      imgUrl: response.data.img,
+      codeText: response.data.codeText
+    });
+  } catch (error) {
+    console.error('获取验证码失败:', error);
+    res.status(500).json({ error: '获取验证码失败' });
+  }
+});
+
+// 验证验证码接口
+app.post('/api/verify-captcha', (req, res) => {
+  const { imgUrl, userAnswer } = req.body;
+  const captchaStore = req.app.get('captchaStore') || {};
+  
+  if (!imgUrl || !userAnswer) {
+    return res.status(400).json({ error: '缺少必要参数' });
+  }
+  
+  const correctAnswer = captchaStore[imgUrl];
+  
+  if (!correctAnswer) {
+    return res.status(400).json({ error: '验证码已过期' });
+  }
+  
+  if (userAnswer.toString() === correctAnswer.toString()) {
+    // 验证成功后移除验证码
+    delete captchaStore[imgUrl];
+    req.app.set('captchaStore', captchaStore);
+    
+    return res.json({ success: true });
+  } else {
+    return res.status(400).json({ error: '验证码错误' });
+  }
+});
+
 
 // 获取所有设备信息
 app.get('/api/devices', async (req, res) => {
@@ -522,11 +535,17 @@ app.patch('/api/status/:id/processed', async (req, res) => {
   }
 });
 
+
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('服务器内部错误');
 });
+
+
+
+
 
 // 启动服务器
 const PORT = process.env.PORT || 5000;

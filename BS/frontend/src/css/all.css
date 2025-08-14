@@ -322,3 +322,118 @@
 .stream-button:hover {
   background-color: #45a049;
 }
+
+/* 验证码容器 */
+.captcha-container {
+  margin: 15px 0;
+}
+
+/* 第一行：算式和刷新文字 */
+.captcha-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.captcha-text {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.refresh-text {
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.refresh-text:hover {
+  text-decoration: underline;
+}
+
+/* 第二行：图片和输入框 */
+.captcha-image-container {
+  display: flex;
+  align-items: center;
+}
+
+.captcha-img {
+  height: 40px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.captcha-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+}
+
+
+/* 注册表单样式 */
+.register-form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 验证码容器 */
+.captcha-container {
+  margin: 20px 0;
+}
+
+.captcha-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.captcha-img {
+  height: 40px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.refresh-text {
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.captcha-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.captcha-text {
+  font-weight: bold;
+  margin-right: 10px;
+  min-width: 80px;
+}
+
+.captcha-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* 注册按钮 */
+.register-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+}

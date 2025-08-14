@@ -14,6 +14,7 @@ const EquipmentVideoPlayback = () => {
   const [username, setUsername] = useState('');
   const videoRef = useRef(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [streamAvailability, setStreamAvailability] = useState({}); // 存储流地址可用状态
 
   // 从token获取用户信息
   useEffect(() => {
@@ -36,6 +37,42 @@ const EquipmentVideoPlayback = () => {
     getUsernameFromToken();
   }, []);
 
+  // 检查流地址可用性的函数
+  const checkStreamAvailability = async (url) => {
+    try {
+      // 使用HEAD方法检查，避免下载整个流
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // 预加载检查所有设备流地址的可用性
+  const preloadStreams = async (devices) => {
+    const availabilityMap = {};
+    
+    for (const device of devices) {
+      if (device.pull_url && device.pull_url !== "播流地址还没开放") {
+        const isAvailable = await checkStreamAvailability(device.pull_url);
+        availabilityMap[device.device_id] = isAvailable;
+      } else {
+        availabilityMap[device.device_id] = false;
+      }
+    }
+    
+    setStreamAvailability(availabilityMap);
+  };
+
+  // 启动定期检查流可用性
+  const startAvailabilityChecks = (devices) => {
+    const intervalId = setInterval(async () => {
+      await preloadStreams(devices);
+    }, 5000); // 每5秒检查一次
+
+    return () => clearInterval(intervalId);
+  };
+
   useEffect(() => {
     const fetchDevices = async () => {
       try {
@@ -45,6 +82,13 @@ const EquipmentVideoPlayback = () => {
         }
         const data = await response.json();
         setDevices(data);
+        
+        // 初始预加载
+        preloadStreams(data);
+        // 启动定期检查
+        const cleanup = startAvailabilityChecks(data);
+        
+        return cleanup;
       } catch (err) {
         setError(err.message);
       } finally {
@@ -52,7 +96,7 @@ const EquipmentVideoPlayback = () => {
       }
     };
 
-    fetchDevices();
+    const cleanupPromise = fetchDevices();
 
     // 加载 hls.js
     const loadHlsJs = () => {
@@ -84,6 +128,7 @@ const EquipmentVideoPlayback = () => {
         hlsPlayer.destroy();
         setHlsPlayer(null);
       }
+      cleanupPromise.then(cleanup => cleanup && cleanup());
     };
   }, []);
 
@@ -203,11 +248,9 @@ const EquipmentVideoPlayback = () => {
                 <tr key={device.device_id}>
                   <td>{device.device_id}</td>
                   <td>{device.device_name}</td>
-                  {/* 修改：将推流地址的a标签改为普通span标签 */}
                   <td className="url-cell">
                     <span className="disabled-link">{device.push_url}</span>
                   </td>
-                  {/* 修改：将播流地址的a标签改为普通span标签 */}
                   <td className="url-cell">
                     <span className="disabled-link">{device.pull_url}</span>
                   </td>
@@ -217,9 +260,14 @@ const EquipmentVideoPlayback = () => {
                   <td>
                     <button
                       onClick={() => playStream(device.pull_url, device)}
-                      disabled={!device.status || !hlsSupported || device.pull_url === "播流地址还没开放"}
+                      disabled={
+                        !device.status || 
+                        !hlsSupported || 
+                        device.pull_url === "播流地址还没开放" ||
+                        !streamAvailability[device.device_id]
+                      }
                     >
-                      播放
+                      {streamAvailability[device.device_id] ? '播放' : '准备中...'}
                     </button>
                   </td>
                 </tr>
