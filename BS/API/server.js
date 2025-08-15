@@ -684,10 +684,6 @@ app.post('/api/user/change-password', async (req, res) => {
   }
 });
 
-
-
-
-
 // 获取地图配置信息
 app.get('/api/map-config', (req, res) => {
   try {
@@ -700,7 +696,6 @@ app.get('/api/map-config', (req, res) => {
     res.status(500).json({ error: '获取地图配置失败' });
   }
 });
-
 
 // 修改后的OSS上传接口
 app.post('/api/oss/upload', async (req, res) => {
@@ -732,7 +727,6 @@ app.post('/api/oss/upload', async (req, res) => {
     });
   }
 });
-
 
 // 替换现有的两个 /api/oss/files 路由为以下单个路由
 app.get('/api/oss/files', async (req, res) => {
@@ -769,8 +763,6 @@ app.get('/api/oss/files', async (req, res) => {
     });
   }
 });
-
-
 
 // 修改后的ai视觉检查接口，支持批量处理并移动文件
 app.post('/api/ai-vision-check', async (req, res) => {
@@ -871,6 +863,88 @@ app.post('/api/ai-vision-check', async (req, res) => {
   }
 });
 
+
+
+
+
+// 获取用户个性化设置
+app.get('/api/user/settings', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: '未提供令牌' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
+    const userId = decoded.userId;
+
+    // 查找用户设置，若无则返回默认值
+    const [settings] = await pool.query(
+      'SELECT * FROM user_settings WHERE user_id = ?',
+      [userId]
+    );
+
+    if (settings.length === 0) {
+      // 返回默认设置（与数据库默认值一致）
+      return res.json({
+        background_color: '#f5f7fa',
+        sidebar_color: '#f8f9fa',
+        font_family: 'Arial, sans-serif',
+        video_resolution: '720p',
+        theme_mode: 'light'
+      });
+    }
+
+    res.json(settings[0]);
+  } catch (err) {
+    console.error('获取设置失败:', err);
+    res.status(500).json({ error: '获取设置失败' });
+  }
+});
+
+// 更新用户个性化设置
+app.put('/api/user/settings', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: '未提供令牌' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
+    const userId = decoded.userId;
+    const { background_color, sidebar_color, font_family, video_resolution, theme_mode } = req.body;
+
+    // 检查是否已有设置，有则更新，无则插入
+    const [existing] = await pool.query(
+      'SELECT * FROM user_settings WHERE user_id = ?',
+      [userId]
+    );
+
+    if (existing.length > 0) {
+      // 更新现有设置
+      await pool.query(
+        `UPDATE user_settings SET 
+         background_color = ?, 
+         sidebar_color = ?, 
+         font_family = ?, 
+         video_resolution = ?, 
+         theme_mode = ?,
+         updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = ?`,
+        [background_color, sidebar_color, font_family, video_resolution, theme_mode, userId]
+      );
+    } else {
+      // 插入新设置
+      await pool.query(
+        `INSERT INTO user_settings 
+         (user_id, background_color, sidebar_color, font_family, video_resolution, theme_mode)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [userId, background_color, sidebar_color, font_family, video_resolution, theme_mode]
+      );
+    }
+
+    res.json({ success: true, message: '设置已保存' });
+  } catch (err) {
+    console.error('更新设置失败:', err);
+    res.status(500).json({ error: '更新设置失败' });
+  }
+});
 
 
 

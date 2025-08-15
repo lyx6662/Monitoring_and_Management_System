@@ -40,7 +40,7 @@ const PictureAndAICheck = () => {
       setLoading(true);
       setError('');
       
-      const res = await fetch('http://localhost:5000/api/oss/files', {
+      const res = await fetch('http://8.149.241.140:5000/api/oss/files', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -92,7 +92,7 @@ const PictureAndAICheck = () => {
       setError('');
       
       // 加载待检查图片
-      const checkRes = await fetch('http://localhost:5000/api/oss/files?directory=check/', {
+      const checkRes = await fetch('http://8.149.241.140:5000/api/oss/files?directory=check/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -112,7 +112,7 @@ const PictureAndAICheck = () => {
       setCheckImages(checkImages);
       
       // 加载检查正确图片
-      const validRes = await fetch('http://localhost:5000/api/oss/files?directory=check_1/', {
+      const validRes = await fetch('http://8.149.241.140:5000/api/oss/files?directory=check_1/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -129,7 +129,7 @@ const PictureAndAICheck = () => {
       }
       
       // 加载检查错误图片
-      const invalidRes = await fetch('http://localhost:5000/api/oss/files?directory=check_2/', {
+      const invalidRes = await fetch('http://8.149.241.140:5000/api/oss/files?directory=check_2/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -229,7 +229,7 @@ const PictureAndAICheck = () => {
       
       // 调用后端API
       const response = await axios.post(
-        'http://localhost:5000/api/ai-vision-check',
+        'http://8.149.241.140:5000/api/ai-vision-check',
         { imageUrls: [imageUrl] }, // 包装成数组
         {
           headers: {
@@ -288,7 +288,7 @@ const PictureAndAICheck = () => {
       
       // 调用后端API进行批量检查
       await axios.post(
-        'http://localhost:5000/api/ai-vision-check',
+        'http://8.149.241.140:5000/api/ai-vision-check',
         { imageUrls },
         {
           headers: {

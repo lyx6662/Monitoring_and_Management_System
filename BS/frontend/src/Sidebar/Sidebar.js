@@ -24,9 +24,9 @@ const Sidebar = () => {
   // 检测当前路由是否属于设备相关页面，自动展开菜单
   useEffect(() => {
     const currentPath = location.pathname;
-    if (currentPath.startsWith('/devices') || 
-        currentPath.startsWith('/equipmentvideoplayback') || 
-        currentPath.startsWith('/DevicesLocationInformation')) {
+    if (currentPath.startsWith('/devices') ||
+      currentPath.startsWith('/equipmentvideoplayback') ||
+      currentPath.startsWith('/DevicesLocationInformation')) {
       setIsDevicesMenuOpen(true);
     }
   }, [location.pathname]);
@@ -63,8 +63,8 @@ const Sidebar = () => {
         <ul className="nav-menu">
           {/* 主页 - 单独项目 */}
           <li className="nav-item">
-            <NavLink 
-              to="/" 
+            <NavLink
+              to="/"
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               end
             >
@@ -76,30 +76,30 @@ const Sidebar = () => {
           <li className="nav-item">
             <div className="nav-parent" onClick={handleDevicesMenuToggle}>
               {/* 主要的导航链接 - 点击导航到/devices */}
-              <NavLink 
-                to="/devices" 
+              <NavLink
+                to="/devices"
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               >
                 设备列表
-                <span 
-                className="toggle-icon"
-                style={{ 
-                  cursor: 'pointer', 
-                  marginLeft: '10px',
-                  fontSize: '12px',
-                  transition: 'transform 0.3s ease',
-                  userSelect: 'none'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation(); // 阻止事件冒泡
-                  setIsDevicesMenuOpen(!isDevicesMenuOpen);
-                }}
-              >
-                {isDevicesMenuOpen ? '▼' : '▶'}
-              </span>
+                <span
+                  className="toggle-icon"
+                  style={{
+                    cursor: 'pointer',
+                    marginLeft: '10px',
+                    fontSize: '12px',
+                    transition: 'transform 0.3s ease',
+                    userSelect: 'none'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    setIsDevicesMenuOpen(!isDevicesMenuOpen);
+                  }}
+                >
+                  {isDevicesMenuOpen ? '▼' : '▶'}
+                </span>
               </NavLink>
-              
-              
+
+
             </div>
 
             {/* 子菜单（设备视频播放 + 设备位置信息） */}
@@ -127,69 +127,71 @@ const Sidebar = () => {
 
           {/* 其他独立菜单项 */}
           <li className="nav-item">
-            <NavLink 
-              to="/PictureAndAICheck" 
+            <NavLink
+              to="/PictureAndAICheck"
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               照片存储以及ai复查
             </NavLink>
           </li>
+
           <li className="nav-item">
-            <NavLink 
-              to="/provinceManage" 
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              省份管理
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink 
-              to="/realTimeMonitoring" 
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              实时监控
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink 
-              to="/settings" 
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              设置
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink 
-              to="/warningAnalysis" 
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              报警分析
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink 
-              to="/workorderManage" 
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              工单管理
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink 
-              to="/video-player" 
+            <NavLink
+              to="/video-player"
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               设备视频
             </NavLink>
           </li>
           <li className="nav-item">
-            <NavLink 
-              to="/personalInformation" 
+            <NavLink
+              to="/personalInformation"
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               个人信息编辑
             </NavLink>
           </li>
+          <li className="nav-item">
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              设置
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/warningAnalysis"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              报警分析
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/workorderManage"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              工单管理
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/provinceManage"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              省份管理
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/realTimeMonitoring"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              实时监控
+            </NavLink>
+          </li>
+
         </ul>
       </nav>
     </div>

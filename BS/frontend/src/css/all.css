@@ -771,3 +771,27 @@
   background-color: #cccccc;
   cursor: not-allowed;
 }
+
+/* 定义全局CSS变量 */
+:root {
+  --bg-color: #f5f7fa; /* 默认背景色 */
+  --sidebar-color: #f8f9fa; /* 默认导航栏色 */
+  --font-family: 'Arial', sans-serif; /* 默认字体 */
+}
+
+/* 应用变量到样式中 */
+.main-content {
+  background-color: var(--bg-color);
+  font-family: var(--font-family);
+}
+
+.sidebar {
+  background-color: var(--sidebar-color);
+}
+
+/* 深色模式支持（可选） */
+body.dark {
+  --bg-color: #333;
+  --sidebar-color: #555;
+  color: white;
+}

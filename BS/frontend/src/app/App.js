@@ -16,16 +16,18 @@ import React, { useState } from "react";
 import DOMPurify from "dompurify";
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from "react-router-dom";
 import Sidebar from '../Sidebar/Sidebar';
+import axios from 'axios';
+import { useEffect } from 'react';
 
 //路由保护
 function RouteGuard({ children }) {
   const { isAuthenticated } = useAuth();
-  
+
   // 从localStorage获取token并解析出用户ID
   const getUserId = () => {
     const token = localStorage.getItem('token');
     if (!token) return null;
-    
+
     try {
       // 解析JWT的payload部分（通常是第二部分）
       const decoded = JSON.parse(atob(token.split('.')[1]));
@@ -40,13 +42,13 @@ function RouteGuard({ children }) {
       return null;
     }
   };
-  
+
   const userId = getUserId();
-  
+
   // 打印登录状态和用户ID
   console.log('当前路由保护状态:', isAuthenticated);
   console.log('当前登录账户ID:', userId);
-  
+
   return isAuthenticated ? children : null;
 }
 
@@ -63,7 +65,7 @@ function Home() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/ai-chat", {
+      const res = await fetch("http://8.149.241.140:5000/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -134,6 +136,29 @@ function Home() {
 
 
 function App() {
+
+  // 添加用户设置相关的副作用
+  useEffect(() => {
+    // 页面加载时获取并应用用户设置
+    const fetchAndApplySettings = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const res = await axios.get('http://8.149.241.140:5000/api/user/settings', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          // 应用样式
+          document.documentElement.style.setProperty('--bg-color', res.data.background_color);
+          document.documentElement.style.setProperty('--sidebar-color', res.data.sidebar_color);
+          document.documentElement.style.setProperty('--font-family', res.data.font_family);
+        } catch (err) {
+          console.error('获取用户设置失败:', err);
+        }
+      }
+    };
+    fetchAndApplySettings();
+  }, []);
+
   return (
     <Router>
       <Routes>

@@ -70,6 +70,46 @@ INSERT INTO users (
   '2025-08-11 14:51:32'
 );
 
+INSERT INTO users (
+  user_id,
+  username,
+  account,
+  password,
+  email,
+  address,
+  phone,
+  create_time
+) VALUES (
+  2,
+  '人2',
+  '123456',
+  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW',
+  NULL,
+  NULL,
+  '17357053825',
+  '2025-08-11 14:51:33'
+);
+
+INSERT INTO users (
+  user_id,
+  username,
+  account,
+  password,
+  email,
+  address,
+  phone,
+  create_time
+) VALUES (
+  3,
+  '人3',
+  '123456789',
+  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW',
+  NULL,
+  NULL,
+  '17357053824',
+  '2025-08-11 14:51:34'
+);
+
 -- 插入设备数据（使用正确的字符编码）
 INSERT INTO devices (
   device_id,
@@ -87,8 +127,8 @@ INSERT INTO devices (
   1,
   'sxt1',
   '865522078460315',
-  'null',
-  'https://play.zhijingwuxian.com/zhijing/865522078460315_13zhen.m3u8?auth_key=1755055859-0-0-b0e6aedc289bc9a2f02edc7c29a15459',
+  'null1',
+  '点击按钮获取1',
   'guangdong',
   'shenzhen',
   '1hao',
@@ -96,3 +136,44 @@ INSERT INTO devices (
   1,
   '2025-08-12 02:43:00'
 );
+
+INSERT INTO devices (
+  device_id,
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  2,
+  'sxt2',
+  '865522078460313',
+  'null2',
+  '点击按钮获取2',
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:43:00'
+);
+
+-- 在文档4的数据库脚本中添加
+CREATE TABLE user_settings (
+  setting_id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  background_color VARCHAR(20) DEFAULT '#f5f7fa', -- 界面背景色（默认值）
+  sidebar_color VARCHAR(20) DEFAULT '#f8f9fa', -- 导航栏背景色
+  font_family VARCHAR(50) DEFAULT 'Arial, sans-serif', -- 字体
+  video_resolution VARCHAR(20) DEFAULT '720p', -- 视频分辨率
+  theme_mode ENUM('light', 'dark') DEFAULT 'light', -- 主题模式
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE -- 用户删除时同步删除设置
+);
+
