@@ -45,7 +45,7 @@ function PersonalInformation() {
       }
 
       try {
-        const response = await fetch('http://8.149.241.140:5000/api/user/profile', {
+        const response = await fetch('http://116.62.54.160.140:5000/api/user/profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -125,7 +125,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://8.149.241.140:5000/api/user/change-password', {
+      const response = await fetch('http://116.62.54.160.140:5000/api/user/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

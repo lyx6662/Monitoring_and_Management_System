@@ -1,0 +1,77 @@
+DROP DATABASE IF EXISTS lianyuan_database;
+CREATE DATABASE lianyuan_database
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_general_ci;  -- 改用MariaDB支持的排序规则
+
+USE lianyuan_database;
+
+
+-- 创建用户表
+CREATE TABLE users (
+  user_id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(50) NOT NULL,
+  account VARCHAR(50) NOT NULL UNIQUE,
+  password VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NULL,
+  address VARCHAR(255),
+  phone VARCHAR(20) NOT NULL UNIQUE,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 创建设备表
+CREATE TABLE devices (
+  device_id INT PRIMARY KEY AUTO_INCREMENT,
+  device_name VARCHAR(100) NOT NULL,
+  device_code VARCHAR(20),
+  push_url VARCHAR(255) NOT NULL UNIQUE,
+  pull_url VARCHAR(255) NOT NULL UNIQUE,
+  province VARCHAR(50) NOT NULL,
+  city VARCHAR(50) NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  user_id INT NOT NULL,
+  status TINYINT NOT NULL DEFAULT 1 COMMENT '1=在线,0=离线',
+  install_time DATETIME NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 创建设备状态表
+CREATE TABLE device_status (
+  status_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  device_id INT NOT NULL,
+  danger_level TINYINT NOT NULL DEFAULT 0 COMMENT '0=正常,1=警告,2=危险',
+  danger_msg VARCHAR(255),
+  image_url VARCHAR(255),
+  video_url VARCHAR(255),
+  record_time DATETIME NOT NULL,
+  is_processed TINYINT NOT NULL DEFAULT 0 COMMENT '0=未处理,1=已处理',
+  FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE,
+  INDEX idx_device_time (device_id, record_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 创建用户设置表
+CREATE TABLE user_settings (
+  setting_id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  background_color VARCHAR(20) DEFAULT '#f5f7fa',
+  sidebar_color VARCHAR(20) DEFAULT '#f8f9fa',
+  font_family VARCHAR(50) DEFAULT 'Arial, sans-serif',
+  video_resolution VARCHAR(20) DEFAULT '720p',
+  theme_mode ENUM('light', 'dark') DEFAULT 'light',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
+-- 插入用户数据
+INSERT INTO users (user_id, username, account, password, email, address, phone, create_time) VALUES
+(1, '1234567890', '123', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053826', '2025-08-11 14:51:32'),
+(2, '人2', '123456', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053825', '2025-08-11 14:51:33'),
+(3, '人3', '123456789', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053824', '2025-08-11 14:51:34');
+
+-- 插入设备数据
+INSERT INTO devices (device_id, device_name, device_code, push_url, pull_url, province, city, location, user_id, status, install_time) VALUES
+(1, 'sxt1', '865522078460315', 'null1', '点击按钮获取1', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00'),
+(2, 'sxt2', '865522078460313', 'null2', '点击按钮获取2', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00');
+
+

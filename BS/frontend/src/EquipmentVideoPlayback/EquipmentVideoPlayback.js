@@ -83,7 +83,7 @@ const EquipmentVideoPlayback = () => {
   useEffect(() => {
     const fetchDevices = async () => {
       try {
-        const response = await fetch('http://8.149.241.140:5000/api/devices');
+        const response = await fetch('http://116.62.54.160.140:5000/api/devices');
         if (!response.ok) {
           throw new Error('获取设备列表失败');
         }
@@ -214,7 +214,7 @@ const EquipmentVideoPlayback = () => {
       setUploadProgress(0);
       
       // 1. 从后端获取签名URL
-      const res = await fetch('http://8.149.241.140:5000/api/oss/upload', {
+      const res = await fetch('http://116.62.54.160.140:5000/api/oss/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -32,7 +32,7 @@ const Setting = () => {
     const fetchSettings = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://8.149.241.140:5000/api/user/settings', {
+        const res = await axios.get('http://116.62.54.160.140:5000/api/user/settings', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setSettings(res.data);
@@ -47,7 +47,7 @@ const Setting = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://8.149.241.140:5000/api/user/settings', settings, {
+      await axios.put('http://116.62.54.160.140:5000/api/user/settings', settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('设置已保存！');

@@ -15,7 +15,7 @@ const AlarmManage = () => {
     const initializeMap = async () => {
       try {
         // 从后端获取地图配置
-        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://8.149.241.140:5000';
+        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://116.62.54.160.140:5000';
         const response = await fetch(`${API_BASE_URL}/api/map-config`);
         if (!response.ok) throw new Error('获取地图配置失败');
         const { amapKey, plugins } = await response.json();
@@ -68,7 +68,7 @@ const AlarmManage = () => {
 
     const loadMapScript = async () => {
       try {
-        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://8.149.241.140:5000';
+        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://116.62.54.160.140:5000';
         const response = await fetch(`${API_BASE_URL}/api/map-config`);
 
         console.log('响应状态:', response.status);
