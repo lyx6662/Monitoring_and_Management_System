@@ -6,7 +6,7 @@
 
 /* ========== 侧边导航栏 ========== */
 .sidebar {
-  width: 180px;
+  width: 185px;
   background-color: #f8f9fa;
   padding: 20px;
   border-right: 1px solid #dee2e6;
@@ -43,11 +43,42 @@
   color: white;
 }
 
+/* 子菜单样式（如有多级导航可启用） */
+.sub-menu {
+  padding-left: 20px;
+  list-style: none;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.sub-link {
+  padding: 8px 15px;
+  display: block;
+  color: #555;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.sub-link:hover {
+  background-color: #f0f0f0;
+}
+
+/* 父菜单展开/收起箭头（可选，用于可折叠菜单） */
+.nav-link[aria-expanded="true"]::after {
+  content: ' ▼';
+}
+
+.nav-link[aria-expanded="false"]::after {
+  content: ' ▶';
+}
+
 /* ========== 主内容区 ========== */
 .main-content {
   flex: 1;
-  margin-left: 220px;
+  margin-left: 220px; /* 与.sidebar width + padding匹配 */
   padding: 20px;
+  background-color: #f5f7fa; /* 可选背景色，统一视觉层次 */
 }
 
 /* ========== 通用卡片样式 ========== */
@@ -72,8 +103,9 @@
 .ai-input {
   flex: 1;
   padding: 10px;
-  border-radius: 4px;
   border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .ai-button {
@@ -83,6 +115,10 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.ai-button:hover {
+  background-color: #45a049;
 }
 
 .ai-response {
@@ -96,8 +132,23 @@
   color: #4CAF50;
 }
 
+.stream-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  margin-left: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.stream-button:hover {
+  background-color: #45a049;
+}
+
 /* ========== 设备管理相关 ========== */
-.device-form {
+.device-form,
+.register-form {
   margin-bottom: 30px;
   padding: 20px;
   border: 1px solid #eee;
@@ -113,7 +164,7 @@
 }
 
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 15px; /* 统一表单组间距 */
 }
 
 .form-row {
@@ -127,17 +178,21 @@
 }
 
 .form-label {
-  margin-right: 10px;
   display: block;
   margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
 }
 
-.form-input {
-  padding: 8px;
+.form-input,
+.login-input,
+.captcha-input {
+  width: 100%;
+  padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  width: 100%;
   box-sizing: border-box;
+  font-size: 14px;
 }
 
 .form-select {
@@ -148,8 +203,54 @@
   box-sizing: border-box;
 }
 
-.submit-button {
-  padding: 8px 20px;
+.captcha-img {
+  height: 40px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.captcha-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.captcha-container {
+  margin: 20px 0;
+}
+
+.captcha-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.captcha-text {
+  font-weight: bold;
+  margin-right: 10px;
+  min-width: 80px;
+}
+
+.refresh-text {
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.refresh-text:hover {
+  text-decoration: underline;
+}
+
+.captcha-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.submit-button,
+.login-btn,
+.register-btn {
+  padding: 10px 20px;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -159,6 +260,18 @@
   margin-top: 10px;
 }
 
+.submit-button:hover,
+.login-btn:hover,
+.register-btn:hover {
+  background-color: #45a049;
+}
+
+.register-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ========== 表格样式 ========== */
 .device-table {
   width: 100%;
   border-collapse: collapse;
@@ -204,26 +317,40 @@
   cursor: pointer;
 }
 
-/* ========== 消息提示 ========== */
-.error-message {
+/* ========== 消息提示样式 ========== */
+.error-message,
+.error {
   color: #dc3545;
   margin-top: 10px;
-  padding: 8px;
+  padding: 8px 12px;
   background-color: #f8d7da;
   border-radius: 4px;
   border: 1px solid #f5c6cb;
 }
 
-.success-message {
+.success-message,
+.loading {
   color: #28a745;
   margin-top: 10px;
-  padding: 8px;
+  padding: 8px 12px;
   background-color: #d4edda;
   border-radius: 4px;
   border: 1px solid #c3e6cb;
 }
 
-/* ========== 登录页面样式 ========== */
+/* 加载或出错占位样式 */
+.loading,
+.error {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+}
+
+.error {
+  color: #ff4d4f;
+}
+
+/* ========== 登录 & 注册页面样式 ========== */
 .blue-background {
   display: flex;
   justify-content: center;
@@ -235,13 +362,15 @@
   box-sizing: border-box;
 }
 
-.login-container {
+.login-container,
+.register-container {
   background-color: #2c5282;
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   width: 350px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .login-title {
@@ -250,21 +379,23 @@
   font-size: 24px;
 }
 
-.login-username, 
-.login-password {
+.login-username,
+.login-password,
+.login-input {
   background-color: #ffffff;
   color: #0a0a0a;
   border: 1px solid #2abae6;
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   margin-bottom: 15px;
   box-sizing: border-box;
   border-radius: 5px;
+  font-size: 14px;
 }
 
-.login-username::placeholder, 
+.login-username::placeholder,
 .login-password::placeholder {
-  color: #090909;
+  color: #999;
 }
 
 .login-remember {
@@ -284,7 +415,8 @@
   text-decoration: none;
 }
 
-.login-btn {
+.login-btn,
+.register-btn {
   background-color: #3182ce;
   color: #fff;
   border: none;
@@ -296,7 +428,8 @@
   font-size: 16px;
 }
 
-.login-btn:hover {
+.login-btn:hover,
+.register-btn:hover {
   background-color: #2b6cb0;
 }
 
@@ -305,92 +438,13 @@
   margin-top: 20px;
 }
 
-.login-link {
+.login-link,
+.login-forget {
   color: #fff;
   text-decoration: none;
 }
-.stream-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  margin-left: 5px;
-  border-radius: 4px;
-  cursor: pointer;
-}
 
-.stream-button:hover {
-  background-color: #45a049;
-}
-
-/* 验证码容器 */
-.captcha-container {
-  margin: 15px 0;
-}
-
-/* 第一行：算式和刷新文字 */
-.captcha-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.captcha-text {
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.refresh-text {
-  color: #1890ff;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.refresh-text:hover {
-  text-decoration: underline;
-}
-
-/* 第二行：图片和输入框 */
-.captcha-image-container {
-  display: flex;
-  align-items: center;
-}
-
-.captcha-img {
-  height: 40px;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.captcha-input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-}
-
-
-/* 注册表单样式 */
-.register-form {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.login-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-/* 验证码容器 */
+/* 验证码相关样式统一 */
 .captcha-container {
   margin: 20px 0;
 }
@@ -413,6 +467,10 @@
   font-size: 14px;
 }
 
+.refresh-text:hover {
+  text-decoration: underline;
+}
+
 .captcha-input-group {
   display: flex;
   align-items: center;
@@ -431,9 +489,285 @@
   border-radius: 4px;
 }
 
-/* 注册按钮 */
-.register-btn {
+/* ========== 个人信息页面样式 ========== */
+.personal-info-container {
+  padding: 20px;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.profile-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.profile-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.detail-label {
+  font-weight: bold;
+  width: 120px;
+  color: #666;
+}
+
+.detail-value {
+  flex: 1;
+  color: #333;
+}
+
+.profile-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+
+/* ========== Material-UI 覆盖样式（按需使用） ========== */
+.MuiDialog-paper {
+  min-width: 400px;
+  padding: 20px;
+}
+
+.MuiTextField-root {
+  margin-bottom: 15px !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .device-form,
+  .register-container {
+    width: 100%;
+    margin: 10px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+/* 横向文件容器样式 */
+.files-horizontal {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  overflow-x: auto; /* 允许横向滚动 */
+  scrollbar-width: thin; /* 细滚动条 */
+  scrollbar-color: #ccc transparent; /* 滚动条颜色 */
+  min-height: 300px; /* 确保有足够高度显示内容 */
+}
+
+/* 横向滚动条样式 */
+.files-horizontal::-webkit-scrollbar {
+  height: 6px;
+}
+
+.files-horizontal::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+/* 文件卡片基础样式 */
+.file-card {
+  flex: 0 0 auto; /* 不拉伸，保持原有尺寸 */
+  width: 200px; /* 固定宽度 */
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.file-card:hover {
+  transform: translateY(-3px);
+}
+
+/* 媒体缩略图样式 */
+.file-thumbnail {
   width: 100%;
-  padding: 12px;
+  height: 150px;
+  object-fit: cover; /* 保持比例填充 */
+  cursor: pointer; /* 提示可点击 */
+}
+
+/* 视频缩略图特殊处理 */
+.file-card.video-card .file-thumbnail {
+  object-fit: contain; /* 视频保持完整比例 */
+  background-color: #000; /* 视频缩略图背景 */
+}
+
+/* 文件信息区域样式 */
+.file-info {
+  padding: 8px;
+  text-align: center;
+}
+
+.file-meta {
+  color: #666;
+  font-size: 14px;
+}
+
+/* 分页控件样式 */
+.pagination {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  justify-content: center;
+  flex-wrap: wrap; /* 防止页码过多时溢出 */
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.pagination button:hover {
+  border-color: #007bff;
+}
+
+.pagination button.active-page {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* 媒体预览模态框基础样式 */
+.media-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.preview-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  width: 100%;
+}
+
+/* 预览媒体样式（图片和视频通用） */
+.preview-media {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border: 2px solid white;
+  border-radius: 4px;
+  width: 100%;
+}
+
+/* 预览关闭按钮 */
+.close-preview {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  color: white;
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-preview:hover {
+  color: #ccc;
+  transform: scale(1.1);
+}
+/* AI复查按钮样式 */
+.ai-check-btn {
   margin-top: 10px;
+  padding: 6px 12px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.ai-check-btn:hover {
+  background-color: #3367d6;
+}
+
+.ai-check-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 已验证图片高亮效果 */
+.file-card.image-card {
+  transition: all 0.3s ease;
+}
+
+/* 待检查图片区域标题 */
+.files-section h2:nth-of-type(1) {
+  color: #e67e22;
+  border-bottom: 2px solid #e67e22;
+  padding-bottom: 8px;
+}
+
+/* 添加批量检查按钮样式 */
+.batch-check-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  margin-bottom: 15px;
+}
+
+.batch-check-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.batch-check-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }

@@ -1,8 +1,8 @@
 import '../css/all.css';
 import DeviceList from "../devicelist/DeviceList";
-import AlarmManage from "../alarmManage/alarmManage";
+import DevicesLocationInformation from "../DevicesLocationInformation/DevicesLocationInformation";
 import Login from "../login/login";
-import LineManage from "../lineManage/lineManage";
+import PictureAndAICheck from "../PictureAndAICheck/PictureAndAICheck";
 import EquipmentVideoPlayback from "../EquipmentVideoPlayback/EquipmentVideoPlayback";
 import ProvinceManage from "../provinceManage/provinceManage";
 import RealTimeMonitoring from "../realTimeMonitoring/realTimeMonitoring";
@@ -94,7 +94,8 @@ function Home() {
 
         {/* AI Assistant */}
         <div className="ai-assistant">
-          <h2>AI 智能助手</h2>
+          <h2>联源电气AI小助手</h2>
+          <h4>与电气相关的问题都可以问我哦~</h4>
           <form onSubmit={handleSubmit} className="ai-form">
             <div className="ai-input-group">
               <input
@@ -142,8 +143,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/devices" element={<DeviceList />} />
-              <Route path="/alarmManage" element={<AlarmManage />} />
-              <Route path="/lineManage" element={<LineManage />} />
+              <Route path="/DevicesLocationInformation" element={<DevicesLocationInformation />} />
+              <Route path="/PictureAndAICheck" element={<PictureAndAICheck />} />
               <Route path="/equipmentvideoplayback" element={<EquipmentVideoPlayback />} />
               <Route path="/provinceManage" element={<ProvinceManage />} />
               <Route path="/realTimeMonitoring" element={<RealTimeMonitoring />} />

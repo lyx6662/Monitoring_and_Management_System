@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
+import axios from 'axios';
 import '../css/all.css';
 import Sidebar from '../Sidebar/Sidebar';
 
@@ -12,9 +13,16 @@ const EquipmentVideoPlayback = () => {
   const [hlsSupported, setHlsSupported] = useState(false);
   const [hlsPlayer, setHlsPlayer] = useState(null);
   const [username, setUsername] = useState('');
-  const videoRef = useRef(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const [isVideoReady, setIsVideoReady] = useState(false);
-  const [streamAvailability, setStreamAvailability] = useState({}); // 存储流地址可用状态
+  const [streamAvailability, setStreamAvailability] = useState({});
+  
+  const videoRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
 
   // 从token获取用户信息
   useEffect(() => {
@@ -40,7 +48,6 @@ const EquipmentVideoPlayback = () => {
   // 检查流地址可用性的函数
   const checkStreamAvailability = async (url) => {
     try {
-      // 使用HEAD方法检查，避免下载整个流
       const response = await fetch(url, { method: 'HEAD' });
       return response.ok;
     } catch (error) {
@@ -140,11 +147,6 @@ const EquipmentVideoPlayback = () => {
     }
   }, [currentStream]);
 
-  const playStream = (url, device) => {
-    setCurrentStream(url);
-    setCurrentDevice(device);
-  };
-
   // 初始化 HLS 播放器
   useEffect(() => {
     if (!isVideoReady || !currentStream || !hlsSupported) return;
@@ -191,6 +193,173 @@ const EquipmentVideoPlayback = () => {
     };
   }, [isVideoReady, currentStream, hlsSupported]);
 
+  // 组件卸载时清理资源
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stop();
+      }
+      clearTimeout(recordingTimerRef.current);
+    };
+  }, []);
+
+  const playStream = (url, device) => {
+    setCurrentStream(url);
+    setCurrentDevice(device);
+  };
+
+  // 上传功能
+  const handleUpload = async (file, fileName) => {
+    try {
+      setUploadProgress(0);
+      
+      // 1. 从后端获取签名URL
+      const res = await fetch('http://localhost:5000/api/oss/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          fileName: fileName || file.name,
+          fileType: file.type
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || '获取上传URL失败');
+      }
+      
+      const { signedUrl, accessUrl } = await res.json();
+      
+      if (!signedUrl) {
+        throw new Error('未获取到有效的上传URL');
+      }
+
+      // 2. 使用axios上传文件
+      await axios.put(signedUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        }
+      });
+
+      console.log('上传成功:', accessUrl);
+      setUploadProgress(100);
+      setTimeout(() => setUploadProgress(0), 3000); // 3秒后隐藏进度条
+      return accessUrl;
+    } catch (err) {
+      console.error('上传失败:', err);
+      setUploadProgress(-1); // 表示错误状态
+      throw err;
+    }
+  };
+
+  // 截图功能
+  const captureScreenshot = () => {
+    if (!videoRef.current || !isVideoReady) return;
+    
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      
+      // 生成文件名: 截图_设备ID_时间戳.png
+      const fileName = `screenshot_${currentDevice?.device_id || 'unknown'}_${Date.now()}.png`;
+      
+      // 创建文件对象
+      const file = new File([blob], fileName, { type: 'image/png' });
+      
+      // 上传截图
+      handleUpload(file).then(url => {
+        console.log('截图上传成功:', url);
+        alert(`截图已保存: ${fileName}`);
+      }).catch(console.error);
+    }, 'image/png');
+  };
+
+  // 开始录制
+  const startRecording = () => {
+    if (!videoRef.current || !isVideoReady) return;
+    
+    const stream = videoRef.current.captureStream();
+    if (!stream) {
+      alert('浏览器不支持录制功能');
+      return;
+    }
+    
+    recordedChunksRef.current = [];
+    mediaRecorderRef.current = new MediaRecorder(stream, {
+      mimeType: 'video/webm;codecs=vp9'
+    });
+    
+    mediaRecorderRef.current.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        recordedChunksRef.current.push(event.data);
+      }
+    };
+    
+    mediaRecorderRef.current.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      
+      // 生成文件名: 录制_设备ID_时间戳.webm
+      const fileName = `recording_${currentDevice?.device_id || 'unknown'}_${Date.now()}.webm`;
+      
+      // 创建文件对象
+      const file = new File([blob], fileName, { type: 'video/webm' });
+      
+      // 上传录制视频
+      handleUpload(file).then(url => {
+        console.log('录制视频上传成功:', url);
+        alert(`录制已保存: ${fileName}`);
+      }).catch(console.error);
+      
+      setIsRecording(false);
+      setRecordingTime(0);
+    };
+    
+    mediaRecorderRef.current.start();
+    setIsRecording(true);
+    setRecordingTime(0);
+    
+    // 设置5秒后自动停止
+    recordingTimerRef.current = setTimeout(() => {
+      stopRecording();
+    }, 5000);
+    
+    // 更新计时器
+    const timer = setInterval(() => {
+      setRecordingTime(prev => {
+        if (prev >= 4.9) {
+          clearInterval(timer);
+          return 5;
+        }
+        return prev + 0.1;
+      });
+    }, 100);
+  };
+
+  // 停止录制
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      clearTimeout(recordingTimerRef.current);
+      setIsRecording(false);
+    }
+  };
+
   if (loading) {
     return <div className="loading">加载中...</div>;
   }
@@ -207,10 +376,33 @@ const EquipmentVideoPlayback = () => {
         <h1>设备视频播放</h1>
 
         <div className="video-container" style={{ display: currentStream ? 'block' : 'none' }}>
-          <h2>
-            当前播放: {username && `${username} - `}
-            {currentDevice ? currentDevice.device_name : '无设备'}
-          </h2>
+          <div className="video-header">
+            <h2>
+              {username && `${username} - `}
+              {currentDevice ? currentDevice.device_name : '无设备'}
+            </h2>
+            
+            <div className="video-controls">
+              {/* 截图按钮 */}
+              <button 
+                onClick={captureScreenshot}
+                disabled={!isVideoReady}
+                className="control-btn"
+              >
+                拍摄
+              </button>
+              
+              {/* 录制按钮 */}
+              <button 
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={!isVideoReady}
+                className={`control-btn ${isRecording ? 'recording-active' : ''}`}
+              >
+                {isRecording ? `停止录制 (${recordingTime.toFixed(1)}s)` : '录制5秒'}
+              </button>
+            </div>
+          </div>
+          
           <video
             ref={videoRef}
             controls
@@ -218,6 +410,28 @@ const EquipmentVideoPlayback = () => {
             style={{ maxWidth: '100%' }}
             key={currentStream}
           ></video>
+          
+          {/* 上传进度显示 */}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="upload-progress">
+              上传进度: {uploadProgress}%
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+          
+          {uploadProgress === 100 && (
+            <div className="upload-success">上传完成!</div>
+          )}
+          
+          {uploadProgress === -1 && (
+            <div className="upload-error">上传失败!</div>
+          )}
+          
           {!hlsSupported && (
             <div className="hls-warning">
               当前浏览器不支持HLS播放，请使用Chrome/Firefox/Edge等现代浏览器

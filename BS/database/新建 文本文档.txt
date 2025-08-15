@@ -1,31 +1,29 @@
--- 设置服务器变量，确保会话使用正确的字符集
-SET NAMES utf8mb4;
-SET character_set_client = utf8mb4;
-SET character_set_connection = utf8mb4;
-SET character_set_results = utf8mb4;
 
+-- 创建数据库
 DROP DATABASE IF EXISTS lianyuan_database;
-
-CREATE DATABASE lianyuan_database 
-CHARACTER SET utf8mb4 
+CREATE DATABASE lianyuan_database
+CHARACTER SET utf8mb4
 COLLATE utf8mb4_0900_ai_ci;
 
 USE lianyuan_database;
 
+-- 创建用户表
 CREATE TABLE users (
   user_id INT PRIMARY KEY AUTO_INCREMENT,
   username VARCHAR(50) NOT NULL,
   account VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE,
+  email VARCHAR(255) NULL,
   address VARCHAR(255),
   phone VARCHAR(20) NOT NULL UNIQUE,
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 创建设备表
 CREATE TABLE devices (
   device_id INT PRIMARY KEY AUTO_INCREMENT,
   device_name VARCHAR(100) NOT NULL,
+  device_code VARCHAR(20),
   push_url VARCHAR(255) NOT NULL UNIQUE,
   pull_url VARCHAR(255) NOT NULL UNIQUE,
   province VARCHAR(50) NOT NULL,
@@ -35,8 +33,9 @@ CREATE TABLE devices (
   status TINYINT NOT NULL DEFAULT 1 COMMENT '1=在线,0=离线',
   install_time DATETIME NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 创建设备状态表
 CREATE TABLE device_status (
   status_id BIGINT PRIMARY KEY AUTO_INCREMENT,
   device_id INT NOT NULL,
@@ -48,63 +47,52 @@ CREATE TABLE device_status (
   is_processed TINYINT NOT NULL DEFAULT 0 COMMENT '0=未处理,1=已处理',
   FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE,
   INDEX idx_device_time (device_id, record_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE devices
-ADD COLUMN device_code INT AFTER device_name;
-ALTER TABLE devices MODIFY COLUMN device_code VARCHAR(20);
-
-
+-- 插入用户数据
 INSERT INTO users (
-  user_id, 
-  username, 
-  account, 
-  password, 
-  email, 
-  address, 
-  phone, 
+  user_id,
+  username,
+  account,
+  password,
+  email,
+  address,
+  phone,
   create_time
 ) VALUES (
-  1, 
-  '1234567890', 
-  '123', 
-  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', 
-  NULL,  -- 对应空的email字段
-  NULL,  -- 对应空的address字段
-  '17357053826', 
+  1,
+  '1234567890',
+  '123',
+  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW',
+  NULL,
+  NULL,
+  '17357053826',
   '2025-08-11 14:51:32'
 );
 
-
-
+-- 插入设备数据（使用正确的字符编码）
 INSERT INTO devices (
-  device_id, 
-  device_name, 
-  device_code, 
-  push_url, 
-  pull_url, 
-  province, 
-  city, 
-  location, 
-  user_id, 
-  status, 
+  device_id,
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
   install_time
 ) VALUES (
-  1, 
-  '摄像头3232', 
-  '865522078460315', 
-  '没有', 
-  'https://play.zhijingwuxian.com/zhijing/865522078460315_13zhen.m3u8?auth_key=1755055859-0-0-b0e6aedc289bc9a2f02edc7c29a15459', 
-  '广东省', 
-  '深圳市', 
-  '东边村1号', 
-  1,  -- 关联users表的user_id=1
-  1,  -- 在线状态
+  1,
+  'sxt1',
+  '865522078460315',
+  'null',
+  'https://play.zhijingwuxian.com/zhijing/865522078460315_13zhen.m3u8?auth_key=1755055859-0-0-b0e6aedc289bc9a2f02edc7c29a15459',
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
   '2025-08-12 02:43:00'
 );
-
-
-
-
-ALTER TABLE users MODIFY email VARCHAR(255) NULL;
-ALTER TABLE users DROP INDEX email;

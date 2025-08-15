@@ -15,7 +15,6 @@ function Login() {
     userAnswer: ''
   });
   const [showCaptcha, setShowCaptcha] = useState(false);
-
   // 注册状态
   const [registerData, setRegisterData] = useState({
     username: '',
@@ -344,7 +343,7 @@ function Login() {
                     看不清？点击刷新
                   </span>
                 </div>
-                <div className="captcha-input-group">
+                <div className="form-group">
                   <span className="captcha-text">{captcha.codeText}</span>
                   <input
                     type="text"
