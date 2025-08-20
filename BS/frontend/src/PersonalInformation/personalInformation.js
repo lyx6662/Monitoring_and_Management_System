@@ -13,8 +13,10 @@ import {
   TextField, 
   Snackbar, 
   Alert,
-  Divider  // 添加这行
+  Divider,
+  IconButton
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import LockIcon from '@mui/icons-material/Lock';
 import '../css/all.css';
 
@@ -29,6 +31,8 @@ function PersonalInformation() {
     newPassword: '',
     confirmPassword: ''
   });
+  const [editField, setEditField] = useState(null);
+  const [editValue, setEditValue] = useState('');
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -92,6 +96,57 @@ function PersonalInformation() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleEditClick = (field, value) => {
+    setEditField(field);
+    setEditValue(value || '');
+  };
+
+  const handleEditCancel = () => {
+    setEditField(null);
+    setEditValue('');
+  };
+
+  const handleEditSave = async () => {
+    if (!editField || !userData) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://116.62.54.160:5000/api/user/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          [editField]: editValue
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('更新失败');
+      }
+
+      setUserData({
+        ...userData,
+        [editField]: editValue
+      });
+
+      setSnackbar({
+        open: true,
+        message: '更新成功',
+        severity: 'success'
+      });
+
+      handleEditCancel();
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.message || '更新失败',
+        severity: 'error'
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -182,6 +237,25 @@ function PersonalInformation() {
     return null;
   }
 
+  // 可编辑字段配置
+  const editableFields = [
+    { key: 'username', label: '用户名' },
+    { key: 'email', label: '邮箱' },
+    { key: 'phone', label: '手机号' },
+    { key: 'address', label: '地址' }
+  ];
+
+  // 不可编辑字段
+  const nonEditableFields = [
+    { key: 'user_id', label: '用户ID' },
+    { key: 'account', label: '账号' },
+    { 
+      key: 'create_time', 
+      label: '注册时间',
+      value: userData?.create_time ? new Date(userData.create_time).toLocaleString() : '-' 
+    }
+  ];
+
   return (
     <div className="app-container">
       <Sidebar />
@@ -201,83 +275,108 @@ function PersonalInformation() {
             borderRadius: '12px',
             boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)'
           }}>
-            <Box sx={{ 
-              display: 'grid',
-              gridTemplateColumns: '150px 1fr',
-              gap: '16px 0',
-              alignItems: 'center'
-            }}>
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                用户ID
-              </Typography>
-              <Typography variant="body1">{userData?.user_id || '-'}</Typography>
-              
-              <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                用户名
-              </Typography>
-              <Typography variant="body1">{userData?.username || '-'}</Typography>
-              
-              <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                账号
-              </Typography>
-              <Typography variant="body1">{userData?.account || '-'}</Typography>
-              
-              <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                邮箱
-              </Typography>
-              <Typography variant="body1">{userData?.email || '未设置'}</Typography>
-              
-              <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                手机号
-              </Typography>
-              <Typography variant="body1">{userData?.phone || '-'}</Typography>
-              
-              <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                地址
-              </Typography>
-              <Typography variant="body1">{userData?.address || '未设置'}</Typography>
-              
-              <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              
-              <Typography variant="subtitle1" sx={{ 
-                fontWeight: '500',
-                color: '#666'
-              }}>
-                注册时间
-              </Typography>
-              <Typography variant="body1">
-                {userData?.create_time ? new Date(userData.create_time).toLocaleString() : '-'}
-              </Typography>
-            </Box>
-            
+            {/* 不可编辑字段 */}
+            {nonEditableFields.map((field) => (
+              <React.Fragment key={field.key}>
+                <Box sx={{ 
+                  display: 'grid',
+                  gridTemplateColumns: '150px 1fr 80px',
+                  gap: '16px 0',
+                  alignItems: 'center'
+                }}>
+                  <Typography variant="subtitle1" sx={{ 
+                    fontWeight: '500',
+                    color: '#666'
+                  }}>
+                    {field.label}
+                  </Typography>
+                  <Typography variant="body1">
+                    {field.value || userData[field.key] || '-'}
+                  </Typography>
+                  <Button 
+                    disabled
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      color: '#999',
+                      borderColor: '#ddd',
+                      backgroundColor: '#f5f5f5',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5'
+                      }
+                    }}
+                  >
+                    不可修改
+                  </Button>
+                </Box>
+                <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
+              </React.Fragment>
+            ))}
+
+            {/* 可编辑字段 */}
+            {editableFields.map((field) => (
+              <React.Fragment key={field.key}>
+                <Box sx={{ 
+                  display: 'grid',
+                  gridTemplateColumns: '150px 1fr 80px',
+                  gap: '16px 0',
+                  alignItems: 'center'
+                }}>
+                  <Typography variant="subtitle1" sx={{ 
+                    fontWeight: '500',
+                    color: '#666'
+                  }}>
+                    {field.label}
+                  </Typography>
+                  
+                  {editField === field.key ? (
+                    <TextField
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      size="small"
+                      fullWidth
+                    />
+                  ) : (
+                    <Typography variant="body1">
+                      {userData[field.key] || '未设置'}
+                    </Typography>
+                  )}
+                  
+                  {editField === field.key ? (
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button 
+                        variant="contained"
+                        size="small"
+                        onClick={handleEditSave}
+                      >
+                        保存
+                      </Button>
+                      <Button 
+                        variant="outlined"
+                        size="small"
+                        onClick={handleEditCancel}
+                      >
+                        取消
+                      </Button>
+                    </Box>
+                  ) : (
+                    <IconButton
+                      onClick={() => handleEditClick(field.key, userData[field.key])}
+                      sx={{
+                        color: '#1976d2',
+                        '&:hover': {
+                          backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                        }
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </Box>
+                <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
+              </React.Fragment>
+            ))}
+
             <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Button
                 variant="contained"

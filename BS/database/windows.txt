@@ -125,10 +125,10 @@ INSERT INTO devices (
   install_time
 ) VALUES (
   1,
-  'sxt1',
+  '云台',
   '865522078460315',
   'null1',
-  '点击按钮获取1',
+  '点击按钮获取播流地址',
   'guangdong',
   'shenzhen',
   '1hao',
@@ -151,10 +151,10 @@ INSERT INTO devices (
   install_time
 ) VALUES (
   2,
-  'sxt2',
-  '865522078460313',
+  '枪机',
+  '869446071341783',
   'null2',
-  '点击按钮获取2',
+  '播流地址还没开放',
   'guangdong',
   'shenzhen',
   '1hao',
@@ -175,5 +175,107 @@ CREATE TABLE user_settings (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE -- 用户删除时同步删除设置
+);
+
+
+-- 1. 首先删除依赖于devices表的外键约束
+ALTER TABLE device_status DROP FOREIGN KEY device_status_ibfk_1;
+
+-- 2. 删除原有的devices表
+DROP TABLE IF EXISTS devices;
+
+-- 3. 重新创建devices表
+CREATE TABLE devices (
+  device_id INT PRIMARY KEY AUTO_INCREMENT,
+  device_name VARCHAR(100) NULL,  -- 改为可空
+  device_code VARCHAR(20) NOT NULL UNIQUE,  -- 设为必填且唯一
+  push_url VARCHAR(255) NULL,  -- 改为可空
+  pull_url VARCHAR(255) NULL,  -- 改为可空
+  province VARCHAR(50) NULL,  -- 改为可空
+  city VARCHAR(50) NULL,  -- 改为可空
+  location VARCHAR(255) NULL,  -- 改为可空
+  user_id INT NOT NULL,
+  status TINYINT NOT NULL DEFAULT 1 COMMENT '1=在线,0=离线',
+  install_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- 添加默认值
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4. 重新添加外键约束
+ALTER TABLE device_status ADD CONSTRAINT fk_device_status_device 
+FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE;
+
+-- 5. 重新插入设备数据（注意不要指定device_id，让自增主键自动生成）
+INSERT INTO devices (
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  '云台',
+  '865522078460315',
+  'null1',
+  '测试云台方向',
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:43:00'
+);
+
+INSERT INTO devices (
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  '枪机',
+  '869446071341783',
+  'null2',
+  'https://check1-video.oss-cn-hangzhou.aliyuncs.com/uploads_device_865522078460315_202507_865522078460315_20250710111734.mp4',
+
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:43:00'
+);
+
+INSERT INTO devices (
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  '枪机',
+  '869446071341782',
+  'null2',
+  'null',
+
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:44:00'
 );
 

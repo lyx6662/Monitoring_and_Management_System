@@ -11,7 +11,7 @@ const routeTitles = {
   '/provinceManage': '省份管理',
   '/realTimeMonitoring': '实时监控',
   '/settings': '设置',
-  '/warningAnalysis': '报警分析',
+  '/DeviceImageAndVideoDisplay': '设备视频图片展示',
   '/workorderManage': '工单管理',
   '/video-player': '设备视频',
   '/personalInformation': '个人信息编辑',
@@ -26,7 +26,9 @@ const Sidebar = () => {
     const currentPath = location.pathname;
     if (currentPath.startsWith('/devices') ||
       currentPath.startsWith('/equipmentvideoplayback') ||
-      currentPath.startsWith('/DevicesLocationInformation')) {
+      currentPath.startsWith('/DevicesLocationInformation') ||
+      currentPath.startsWith('/DeviceImageAndVideoDisplay')
+    ) {
       setIsDevicesMenuOpen(true);
     }
   }, [location.pathname]);
@@ -115,6 +117,14 @@ const Sidebar = () => {
                 </li>
                 <li className="nav-item">
                   <NavLink
+                    to="/DeviceImageAndVideoDisplay"
+                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                  >
+                    设备图像视频展示
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink
                     to="/DevicesLocationInformation"
                     className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                   >
@@ -126,6 +136,7 @@ const Sidebar = () => {
           </li>
 
           {/* 其他独立菜单项 */}
+
           <li className="nav-item">
             <NavLink
               to="/PictureAndAICheck"
@@ -159,14 +170,7 @@ const Sidebar = () => {
               设置
             </NavLink>
           </li>
-          <li className="nav-item">
-            <NavLink
-              to="/warningAnalysis"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              报警分析
-            </NavLink>
-          </li>
+
           <li className="nav-item">
             <NavLink
               to="/workorderManage"

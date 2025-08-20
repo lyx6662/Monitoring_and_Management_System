@@ -1,10 +1,10 @@
+-- 创建数据库（使用兼容性更好的排序规则）
 DROP DATABASE IF EXISTS lianyuan_database;
 CREATE DATABASE lianyuan_database
 CHARACTER SET utf8mb4
-COLLATE utf8mb4_general_ci;  -- 改用MariaDB支持的排序规则
+COLLATE utf8mb4_unicode_ci;
 
 USE lianyuan_database;
-
 
 -- 创建用户表
 CREATE TABLE users (
@@ -18,19 +18,19 @@ CREATE TABLE users (
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 创建设备表
+-- 创建设备表（修改为device_code必填且唯一，其他字段可空）
 CREATE TABLE devices (
   device_id INT PRIMARY KEY AUTO_INCREMENT,
-  device_name VARCHAR(100) NOT NULL,
-  device_code VARCHAR(20),
-  push_url VARCHAR(255) NOT NULL UNIQUE,
-  pull_url VARCHAR(255) NOT NULL UNIQUE,
-  province VARCHAR(50) NOT NULL,
-  city VARCHAR(50) NOT NULL,
-  location VARCHAR(255) NOT NULL,
+  device_name VARCHAR(100),
+  device_code VARCHAR(20) NOT NULL UNIQUE,
+  push_url VARCHAR(255),
+  pull_url VARCHAR(255),
+  province VARCHAR(50),
+  city VARCHAR(50),
+  location VARCHAR(255),
   user_id INT NOT NULL,
   status TINYINT NOT NULL DEFAULT 1 COMMENT '1=在线,0=离线',
-  install_time DATETIME NOT NULL,
+  install_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -60,18 +60,15 @@ CREATE TABLE user_settings (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
--- 插入用户数据
+-- 插入用户数据（合并格式）
 INSERT INTO users (user_id, username, account, password, email, address, phone, create_time) VALUES
 (1, '1234567890', '123', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053826', '2025-08-11 14:51:32'),
 (2, '人2', '123456', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053825', '2025-08-11 14:51:33'),
 (3, '人3', '123456789', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053824', '2025-08-11 14:51:34');
 
--- 插入设备数据
-INSERT INTO devices (device_id, device_name, device_code, push_url, pull_url, province, city, location, user_id, status, install_time) VALUES
-(1, 'sxt1', '865522078460315', 'null1', '点击按钮获取1', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00'),
-(2, 'sxt2', '865522078460313', 'null2', '点击按钮获取2', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00');
-
-
+-- 插入设备数据（合并格式，不指定device_id让自增主键自动生成）
+INSERT INTO devices (device_name, device_code, push_url, pull_url, province, city, location, user_id, status, install_time) VALUES
+('云台', '865522078460315', 'null1', '点击按钮获取播流地址', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00'),
+('枪机', '869446071341783', 'null2', '播流地址还没开放', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00');

@@ -7,7 +7,7 @@ import EquipmentVideoPlayback from "../EquipmentVideoPlayback/EquipmentVideoPlay
 import ProvinceManage from "../provinceManage/provinceManage";
 import RealTimeMonitoring from "../realTimeMonitoring/realTimeMonitoring";
 import Settings from "../settings/settings";
-import WarningAnalysis from "../warningAnalysis/warningAnalysis";
+import DeviceImageAndVideoDisplay from "../DeviceImageAndVideoDisplay/DeviceImageAndVideoDisplay";
 import WorkorderManage from "../workorderManage/workorderManage";
 import VideoPlayer from "../videoplayer/VideoPlayer";
 import PersonalInformation from '../PersonalInformation/personalInformation';
@@ -174,7 +174,7 @@ function App() {
               <Route path="/provinceManage" element={<ProvinceManage />} />
               <Route path="/realTimeMonitoring" element={<RealTimeMonitoring />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/warningAnalysis" element={<WarningAnalysis />} />
+              <Route path="/DeviceImageAndVideoDisplay" element={<DeviceImageAndVideoDisplay />} />
               <Route path="/workorderManage" element={<WorkorderManage />} />
               <Route path="/video-player" element={<VideoPlayer />} />
               <Route path="/personalInformation" element={<PersonalInformation />} />
