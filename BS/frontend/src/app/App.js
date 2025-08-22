@@ -64,7 +64,7 @@ function Home() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/ai-chat", {
+      const res = await fetch("http://116.62.54.160:5000/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -143,7 +143,7 @@ function App() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await axios.get('http://localhost:5000/api/user/settings', {
+          const res = await axios.get('http://116.62.54.160:5000/api/user/settings', {
             headers: { Authorization: `Bearer ${token}` }
           });
           // 应用样式

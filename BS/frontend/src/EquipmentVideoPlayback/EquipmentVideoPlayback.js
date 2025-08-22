@@ -239,7 +239,7 @@ const fetchDevices = async () => {
     }
 
     // 构建请求URL，包含用户ID参数
-    let url = 'http://localhost:5000/api/devices';
+    let url = 'http://116.62.54.160:5000/api/devices';
     if (userId) {
       url += `?user_id=${userId}`;
     }
@@ -383,7 +383,7 @@ const fetchDevices = async () => {
       setUploadProgress(0);
 
       // 1. 从后端获取签名URL
-      const res = await fetch('http://localhost:5000/api/oss/upload', {
+      const res = await fetch('http://116.62.54.160:5000/api/oss/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -569,7 +569,7 @@ const fetchDevices = async () => {
 
       const response = await axios({
         method,
-        url: `http://localhost:5000${url}`,
+        url: `http://116.62.54.160:5000${url}`,
         data,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -673,13 +673,13 @@ const fetchDevices = async () => {
     try {
       setLoading(true);
       const streamResponse = await axios.post(
-        `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+        `http://116.62.54.160:5000/api/devices/${deviceId}/stream-url`,
         { device_code: deviceCode }
       );
 
       if (streamResponse.data.streamUrl) {
         await axios.put(
-          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+          `http://116.62.54.160:5000/api/devices/${deviceId}/stream-url`,
           { pull_url: streamResponse.data.streamUrl }
         );
 
@@ -859,13 +859,13 @@ const fetchDevices = async () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:5000/api/devices/stop-stream",
+        "http://116.62.54.160:5000/api/devices/stop-stream",
         { deviceCode }
       );
 
       if (response.data.success) {
         await axios.put(
-          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+          `http://116.62.54.160:5000/api/devices/${deviceId}/stream-url`,
           { pull_url: "播流地址还没开放" }
         );
 

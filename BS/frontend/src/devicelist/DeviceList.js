@@ -59,7 +59,7 @@ const initialDeviceState = {
 // ========== 封装的 API 方法 ========== //
 const fetchDeviceList = async (setDevices, setError, setLoading, userId) => {
   try {
-    const response = await axios.get("http://localhost:5000/api/devices", {
+    const response = await axios.get("http://116.62.54.160:5000/api/devices", {
       params: { user_id: userId }
     });
     setDevices(response.data);
@@ -77,7 +77,7 @@ const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
       throw new Error("设备代码不能为空");
     }
 
-    const response = await axios.post("http://localhost:5000/api/devices", {
+    const response = await axios.post("http://116.62.54.160:5000/api/devices", {
       ...newDevice,
       push_url: `未设置`,
       pull_url: "播流地址还没开放",
@@ -101,7 +101,7 @@ const updateDevice = async (deviceId, deviceData, setSuccess, setError, fetchDev
       throw new Error("设备代码不能为空");
     }
 
-    await axios.put(`http://localhost:5000/api/devices/${deviceId}`, {
+    await axios.put(`http://116.62.54.160:5000/api/devices/${deviceId}`, {
       ...deviceData,
       user_id: undefined
     });
@@ -199,7 +199,7 @@ const DeviceList = () => {
 
   const handleDelete = async (device_id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/devices/${device_id}`);
+      await axios.delete(`http://116.62.54.160:5000/api/devices/${device_id}`);
       setSuccess("设备删除成功");
       setTimeout(() => setSuccess(""), 1000);
       setDevices(devices.filter(device => device.device_id !== device_id));

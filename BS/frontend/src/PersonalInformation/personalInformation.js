@@ -49,7 +49,7 @@ function PersonalInformation() {
       }
 
       try {
-        const response = await fetch('http://localhost:5000/api/user/profile', {
+        const response = await fetch('http://116.62.54.160:5000/api/user/profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -113,7 +113,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/user/update-profile', {
+      const response = await fetch('http://116.62.54.160:5000/api/user/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/user/change-password', {
+      const response = await fetch('http://116.62.54.160:5000/api/user/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

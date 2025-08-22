@@ -101,7 +101,7 @@ const DeviceImageAndVideoDisplay = () => {
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/devices?user_id=${userId}`, {
+      const res = await fetch(`http://116.62.54.160:5000/api/devices?user_id=${userId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -133,7 +133,7 @@ const DeviceImageAndVideoDisplay = () => {
       setLoading(true);
       const size = itemsPerPage;
       const res = await fetch(
-        `http://localhost:5000/api/picture/get-by-device-code?deviceCode=${selectedDeviceCode}&page=${page}&size=${size}&day=${deviceImageDate}`,
+        `http://116.62.54.160:5000/api/picture/get-by-device-code?deviceCode=${selectedDeviceCode}&page=${page}&size=${size}&day=${deviceImageDate}`,
         {
           method: 'POST',
           headers: {
@@ -173,7 +173,7 @@ const DeviceImageAndVideoDisplay = () => {
       setLoading(true);
       const size = itemsPerPage;
       const res = await fetch(
-        `http://localhost:5000/api/device-video/get-by-device-code`,
+        `http://116.62.54.160:5000/api/device-video/get-by-device-code`,
         {
           method: 'POST',
           headers: {
@@ -217,7 +217,7 @@ const DeviceImageAndVideoDisplay = () => {
       const size = itemsPerPage;
 
       const res = await fetch(
-        `http://localhost:5000/api/alarm/query-early-alarm?page=${page}&size=${size}`,
+        `http://116.62.54.160:5000/api/alarm/query-early-alarm?page=${page}&size=${size}`,
         {
           method: 'POST',
           headers: {
@@ -264,7 +264,7 @@ const DeviceImageAndVideoDisplay = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:5000/api/hub/device-snap-by-device-code?deviceCode=${selectedDeviceCode}`,
+        `http://116.62.54.160:5000/api/hub/device-snap-by-device-code?deviceCode=${selectedDeviceCode}`,
         {
           method: 'POST',
           headers: {
@@ -300,7 +300,7 @@ const DeviceImageAndVideoDisplay = () => {
     try {
       setIsGettingStatus(true);
       const response = await fetch(
-        `http://localhost:5000/api/device-params/get-by-device-code?code=${selectedDeviceCode}`,
+        `http://116.62.54.160:5000/api/device-params/get-by-device-code?code=${selectedDeviceCode}`,
         {
           method: 'POST',
           headers: {
@@ -340,7 +340,7 @@ const DeviceImageAndVideoDisplay = () => {
     try {
       setIsRestarting(true);
       const response = await fetch(
-        `http://localhost:5000/api/device/restart?deviceCode=${selectedDeviceCode}`,
+        `http://116.62.54.160:5000/api/device/restart?deviceCode=${selectedDeviceCode}`,
         {
           method: 'POST',
           headers: {
@@ -376,7 +376,7 @@ const DeviceImageAndVideoDisplay = () => {
       setIsCreatingAlarm(true);
       setError('');
 
-      const response = await fetch('http://localhost:5000/api/alarm/create', {
+      const response = await fetch('http://116.62.54.160:5000/api/alarm/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -431,7 +431,7 @@ const DeviceImageAndVideoDisplay = () => {
         }))
       };
 
-      const response = await fetch('http://localhost:5000/api/ai-vision-check', {
+      const response = await fetch('http://116.62.54.160:5000/api/ai-vision-check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
