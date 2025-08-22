@@ -72,3 +72,7 @@ INSERT INTO users (user_id, username, account, password, email, address, phone, 
 INSERT INTO devices (device_name, device_code, push_url, pull_url, province, city, location, user_id, status, install_time) VALUES
 ('云台', '865522078460315', 'null1', '点击按钮获取播流地址', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00'),
 ('枪机', '869446071341783', 'null2', '播流地址还没开放', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00');
+
+
+
+

@@ -9,7 +9,6 @@ import RealTimeMonitoring from "../realTimeMonitoring/realTimeMonitoring";
 import Settings from "../settings/settings";
 import DeviceImageAndVideoDisplay from "../DeviceImageAndVideoDisplay/DeviceImageAndVideoDisplay";
 import WorkorderManage from "../workorderManage/workorderManage";
-import VideoPlayer from "../videoplayer/VideoPlayer";
 import PersonalInformation from '../PersonalInformation/personalInformation';
 import { useAuth } from '../auth/auth';
 import React, { useState } from "react";
@@ -65,7 +64,7 @@ function Home() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://116.62.54.160:5000/api/ai-chat", {
+      const res = await fetch("http://localhost:5000/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -144,7 +143,7 @@ function App() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await axios.get('http://116.62.54.160:5000/api/user/settings', {
+          const res = await axios.get('http://localhost:5000/api/user/settings', {
             headers: { Authorization: `Bearer ${token}` }
           });
           // 应用样式
@@ -176,7 +175,6 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/DeviceImageAndVideoDisplay" element={<DeviceImageAndVideoDisplay />} />
               <Route path="/workorderManage" element={<WorkorderManage />} />
-              <Route path="/video-player" element={<VideoPlayer />} />
               <Route path="/personalInformation" element={<PersonalInformation />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

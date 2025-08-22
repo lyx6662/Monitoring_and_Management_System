@@ -220,7 +220,7 @@ INSERT INTO devices (
   '云台',
   '865522078460315',
   'null1',
-  '测试云台方向',
+  'https://play.zhijingwuxian.com/zhijing/865522078460315_13zhen.m3u8?auth_key=1755756125-0-0-d515c887b3d7a52c922cb28b061fc6a4',
   'guangdong',
   'shenzhen',
   '1hao',

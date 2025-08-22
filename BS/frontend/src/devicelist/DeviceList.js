@@ -59,7 +59,7 @@ const initialDeviceState = {
 // ========== 封装的 API 方法 ========== //
 const fetchDeviceList = async (setDevices, setError, setLoading, userId) => {
   try {
-    const response = await axios.get("http://116.62.54.160:5000/api/devices", {
+    const response = await axios.get("http://localhost:5000/api/devices", {
       params: { user_id: userId }
     });
     setDevices(response.data);
@@ -77,7 +77,7 @@ const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
       throw new Error("设备代码不能为空");
     }
 
-    const response = await axios.post("http://116.62.54.160:5000/api/devices", {
+    const response = await axios.post("http://localhost:5000/api/devices", {
       ...newDevice,
       push_url: `未设置`,
       pull_url: "播流地址还没开放",
@@ -101,7 +101,7 @@ const updateDevice = async (deviceId, deviceData, setSuccess, setError, fetchDev
       throw new Error("设备代码不能为空");
     }
 
-    await axios.put(`http://116.62.54.160:5000/api/devices/${deviceId}`, {
+    await axios.put(`http://localhost:5000/api/devices/${deviceId}`, {
       ...deviceData,
       user_id: undefined
     });
@@ -199,73 +199,12 @@ const DeviceList = () => {
 
   const handleDelete = async (device_id) => {
     try {
-      await axios.delete(`http://116.62.54.160:5000/api/devices/${device_id}`);
+      await axios.delete(`http://localhost:5000/api/devices/${device_id}`);
       setSuccess("设备删除成功");
       setTimeout(() => setSuccess(""), 1000);
       setDevices(devices.filter(device => device.device_id !== device_id));
     } catch (err) {
       setError("删除失败: " + (err.response?.data?.error || err.message));
-    }
-  };
-
-  const fetchStreamUrl = async (deviceId, deviceCode) => {
-    try {
-      setLoading(true);
-      const streamResponse = await axios.post(
-        `http://116.62.54.160:5000/api/devices/${deviceId}/stream-url`,
-        { device_code: deviceCode }
-      );
-
-      if (streamResponse.data.streamUrl) {
-        await axios.put(
-          `http://116.62.54.160:5000/api/devices/${deviceId}/stream-url`,
-          { pull_url: streamResponse.data.streamUrl }
-        );
-
-        setDevices(devices.map(device =>
-          device.device_id === deviceId
-            ? { ...device, pull_url: streamResponse.data.streamUrl }
-            : device
-        ));
-
-        setSuccess("播流地址获取并更新成功: " + streamResponse.data.streamUrl);
-        setTimeout(() => setSuccess(""), 1000);
-      } else {
-        setError("未能获取有效的播流地址");
-      }
-    } catch (err) {
-      setError("获取或更新播流地址失败: " + (err.response?.data?.error || err.message));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStopStream = async (deviceCode, deviceId) => {
-    if (!deviceCode) {
-      setError("设备代码不能为空，无法关闭播流");
-      return;
-    }
-    try {
-      setLoading(true);
-      const response = await axios.post(
-        "http://116.62.54.160:5000/api/devices/stop-stream",
-        { deviceCode }
-      );
-      if (response.data.success) {
-        await axios.put(
-          `http://116.62.54.160:5000/api/devices/${deviceId}/stream-url`,
-          { pull_url: "播流地址还没开放" }
-        );
-        setSuccess("播流已成功关闭");
-        setTimeout(() => setSuccess(""), 1000);
-        fetchDevices();
-      } else {
-        setError("关闭播流失败: " + (response.data.error || "未知错误"));
-      }
-    } catch (err) {
-      setError("关闭播流出错: " + (err.response?.data?.error || err.message));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -330,14 +269,14 @@ const DeviceList = () => {
                   onChange={(e) => {
                     const selectedProvince = e.target.value;
                     if (editingDevice) {
-                      setEditingDevice({ 
-                        ...editingDevice, 
+                      setEditingDevice({
+                        ...editingDevice,
                         province: selectedProvince,
                         city: "" // 重置城市选择
                       });
                     } else {
-                      setNewDevice({ 
-                        ...newDevice, 
+                      setNewDevice({
+                        ...newDevice,
                         province: selectedProvince,
                         city: "" // 重置城市选择
                       });
@@ -452,7 +391,6 @@ const DeviceList = () => {
                   <th>ID</th>
                   <th>名称</th>
                   <th>设备代码</th>
-                  <th>推流地址</th>
                   <th>拉流地址</th>
                   <th>位置</th>
                   <th>状态</th>
@@ -466,7 +404,6 @@ const DeviceList = () => {
                     <td>{device.device_id}</td>
                     <td>{device.device_name}</td>
                     <td>{device.device_code}</td>
-                    <td className="url-cell">{device.push_url}</td>
                     <td className="url-cell">{device.pull_url}</td>
                     <td>{`${device.province}${device.city}${device.location}`}</td>
                     <td>
@@ -487,22 +424,6 @@ const DeviceList = () => {
                         className="delete-button"
                       >
                         删除
-                      </button>
-                      <button
-                        onClick={() => fetchStreamUrl(device.device_id, device.device_code)}
-                        className="stream-button"
-                        disabled={!device.device_code}
-                        title={!device.device_code ? "需要先设置设备代码" : ""}
-                      >
-                        获取播流地址
-                      </button>
-                      <button
-                        onClick={() => handleStopStream(device.device_code, device.device_id)}
-                        className="stop-stream-button"
-                        disabled={!device.device_code || !device.pull_url || device.pull_url === "播流地址还没开放"}
-                        title={!device.device_code ? "需要设备代码" : (!device.pull_url || device.pull_url === "播流地址还没开放" ? "没有活跃的播流" : "")}
-                      >
-                        关闭播流
                       </button>
                     </td>
                   </tr>

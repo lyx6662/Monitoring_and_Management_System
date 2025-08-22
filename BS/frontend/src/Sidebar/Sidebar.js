@@ -13,7 +13,6 @@ const routeTitles = {
   '/settings': '设置',
   '/DeviceImageAndVideoDisplay': '设备视频图片展示',
   '/workorderManage': '工单管理',
-  '/video-player': '设备视频',
   '/personalInformation': '个人信息编辑',
 };
 
@@ -143,15 +142,6 @@ const Sidebar = () => {
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               照片存储以及ai复查
-            </NavLink>
-          </li>
-
-          <li className="nav-item">
-            <NavLink
-              to="/video-player"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              设备视频
             </NavLink>
           </li>
           <li className="nav-item">

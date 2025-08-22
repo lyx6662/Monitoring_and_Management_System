@@ -37,7 +37,7 @@ app.use((req, res, next) => {
 app.post('/api/ai-chat', async (req, res) => {
   try {
     const { messages } = req.body;
-    
+
     // 验证输入消息长度
     const lastUserMessage = messages.find(m => m.role === 'user');
     if (lastUserMessage && lastUserMessage.content.length > 500) {
@@ -45,23 +45,23 @@ app.post('/api/ai-chat', async (req, res) => {
     }
 
     // 添加系统消息作为第一条消息（如果不存在）
-    const formattedMessages = messages[0]?.role === 'system' 
-      ? messages 
+    const formattedMessages = messages[0]?.role === 'system'
+      ? messages
       : [
-          { 
-            role: 'system', 
-            content: '你是人工智能助手。请遵守以下规则：\n' +
-                    '1. 回答长度不超过1000字符\n' +
-                    '2. 不讨论政治、暴力、色情等敏感话题\n' +
-                    '3. 不提供任何违法或有害信息\n' +
-                    '4. 保持专业和礼貌的态度\n' +
-                    '5. 如果无法回答，请诚实地告知用户\n' +
-                    '6. 只回答与电气工程相关的问题，避免其他领域的讨论。\n' +
-                    '7. 可以回答有关于浙江省衢州市联源电气科技有限公司的相关问题\n'
+        {
+          role: 'system',
+          content: '你是人工智能助手。请遵守以下规则：\n' +
+            '1. 回答长度不超过1000字符\n' +
+            '2. 不讨论政治、暴力、色情等敏感话题\n' +
+            '3. 不提供任何违法或有害信息\n' +
+            '4. 保持专业和礼貌的态度\n' +
+            '5. 如果无法回答，请诚实地告知用户\n' +
+            '6. 只回答与电气工程相关的问题，避免其他领域的讨论。\n' +
+            '7. 可以回答有关于浙江省衢州市联源电气科技有限公司的相关问题\n'
 
-          },
-          ...messages
-        ];
+        },
+        ...messages
+      ];
 
     const response = await axios.post(
       process.env.AI_API_URL,
@@ -80,12 +80,12 @@ app.post('/api/ai-chat', async (req, res) => {
 
     // 获取AI响应并处理
     let aiResponse = response.data.choices?.[0]?.message?.content || "无响应";
-    
+
     // 后端二次验证和截断
     if (aiResponse.length > 500) {
       aiResponse = aiResponse.substring(0, 500) + '...';
     }
-    
+
     // 过滤敏感内容（简单示例）
     const forbiddenWords = ['暴力', '色情', '政治敏感词']; // 替换为实际需要过滤的词
     forbiddenWords.forEach(word => {
@@ -104,19 +104,14 @@ app.post('/api/ai-chat', async (req, res) => {
     });
   } catch (error) {
     console.error('AI接口错误:', error.response?.data || error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'AI服务调用失败',
       details: error.response?.data || error.message
     });
   }
 });
 
-//获取二维码
-app.get('/api/qrcode', (req, res) => {
-  https.get('https://api.2dcode.biz/v1/create-qr-code?data=Example', (apiRes) => {
-    apiRes.pipe(res); // 将二维码图片流直接转发给前端
-  });
-});
+
 
 // 用户注册
 app.post('/api/auth/register', async (req, res) => {
@@ -225,12 +220,12 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/captcha', async (req, res) => {
   try {
     const response = await axios.get('http://shanhe.kim/api/za/yzmv1.php');
-    
+
     // 将验证码答案存储在服务器内存中（生产环境应该使用Redis等）
     const captchaStore = req.app.get('captchaStore') || {};
     captchaStore[response.data.img] = response.data.answer;
     req.app.set('captchaStore', captchaStore);
-    
+
     res.json({
       code: 200,
       imgUrl: response.data.img,
@@ -246,22 +241,22 @@ app.get('/api/captcha', async (req, res) => {
 app.post('/api/verify-captcha', (req, res) => {
   const { imgUrl, userAnswer } = req.body;
   const captchaStore = req.app.get('captchaStore') || {};
-  
+
   if (!imgUrl || !userAnswer) {
     return res.status(400).json({ error: '缺少必要参数' });
   }
-  
+
   const correctAnswer = captchaStore[imgUrl];
-  
+
   if (!correctAnswer) {
     return res.status(400).json({ error: '验证码已过期' });
   }
-  
+
   if (userAnswer.toString() === correctAnswer.toString()) {
     // 验证成功后移除验证码
     delete captchaStore[imgUrl];
     req.app.set('captchaStore', captchaStore);
-    
+
     return res.json({ success: true });
   } else {
     return res.status(400).json({ error: '验证码错误' });
@@ -273,7 +268,7 @@ app.post('/api/verify-captcha', (req, res) => {
 app.get('/api/devices', async (req, res) => {
   try {
     const userId = req.query.user_id; // 从查询参数获取用户ID
-    
+
     let query = `
       SELECT d.device_id, d.device_name, d.device_code, d.push_url, d.pull_url, 
              d.province, d.city, d.location, d.status, d.install_time,
@@ -281,15 +276,15 @@ app.get('/api/devices', async (req, res) => {
       FROM devices d
       JOIN users u ON d.user_id = u.user_id
     `;
-    
+
     let params = [];
-    
+
     // 如果有传入用户ID，则添加筛选条件
     if (userId) {
       query += ' WHERE d.user_id = ?';
       params.push(userId);
     }
-    
+
     const [devices] = await pool.query(query, params);
 
     res.json(devices);
@@ -306,7 +301,7 @@ app.post('/api/devices/:id/stream-url', async (req, res) => {
 
   try {
     const response = await axios.post(
-      `http://47.104.136.74:20443/v1/device/start-push-rtmp-stream?device-code=${device_code}&duration=6000&chann=1&codec=0`
+      `http://47.104.136.74:20443/v1/device/start-push-rtmp-stream?device-code=${device_code}&duration=6000&chann=1&codec=1`
     );
 
     if (response.data.code === 0) {
@@ -370,7 +365,7 @@ app.post('/api/devices', async (req, res) => {
 
   // 1. 严格验证必填字段
   const requiredFields = [
-    { name: 'device_name', value: device_name, msg: '设备名称不能为空' },
+    { name: 'device_name', value: device_name, msg: '设备类型不能为空' },
     { name: 'device_code', value: device_code, msg: '设备代码不能为空' },
     { name: 'user_id', value: user_id, msg: '所属用户ID不能为空' }
   ];
@@ -382,7 +377,7 @@ app.post('/api/devices', async (req, res) => {
 
   // 2. 字段格式验证
   if (device_name.length > 100) {
-    return res.status(400).json({ error: '设备名称长度不能超过100字符' });
+    return res.status(400).json({ error: '设备类型长度不能超过100字符' });
   }
   if (device_code.length > 20) {
     return res.status(400).json({ error: '设备代码长度不能超过20字符' });
@@ -440,7 +435,7 @@ app.post('/api/devices', async (req, res) => {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: '设备代码或流地址已存在（数据库约束）' });
     }
-    res.status(500).json({ 
+    res.status(500).json({
       error: '添加设备失败',
       details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
@@ -463,7 +458,7 @@ app.put('/api/devices/:id', async (req, res) => {
 
   // 1. 验证基础必填字段
   if (!device_name || device_code === undefined || status === undefined) {
-    return res.status(400).json({ error: '设备名称、设备代码和状态为必填项' });
+    return res.status(400).json({ error: '设备类型、设备代码和状态为必填项' });
   }
 
   // 2. 验证设备ID合法性
@@ -547,7 +542,7 @@ app.put('/api/devices/:id', async (req, res) => {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: '更新失败，设备代码或流地址重复' });
     }
-    res.status(500).json({ 
+    res.status(500).json({
       error: '更新设备失败',
       details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
@@ -692,7 +687,7 @@ app.get('/api/user/profile', async (req, res) => {
   try {
     // 从Authorization头部获取token
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
       return res.status(401).json({ error: '未提供认证令牌' });
     }
@@ -714,15 +709,15 @@ app.get('/api/user/profile', async (req, res) => {
     res.json(users[0]);
   } catch (err) {
     console.error('获取用户信息失败:', err);
-    
+
     if (err.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: '无效的令牌' });
     }
-    
+
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: '令牌已过期' });
     }
-    
+
     res.status(500).json({ error: '获取用户信息失败' });
   }
 });
@@ -775,11 +770,11 @@ app.post('/api/user/change-password', async (req, res) => {
     res.json({ success: true, message: '密码修改成功' });
   } catch (err) {
     console.error('修改密码失败:', err);
-    
+
     if (err.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: '无效的令牌' });
     }
-    
+
     res.status(500).json({ error: '修改密码失败' });
   }
 });
@@ -801,29 +796,29 @@ app.get('/api/map-config', (req, res) => {
 app.post('/api/oss/upload', async (req, res) => {
   try {
     const { fileName, fileType } = req.body;
-    
+
     // 生成唯一的文件名
     const objectName = `uploads/${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
-    
+
     // 生成带签名的上传URL
     const signedUrl = ossClient.signatureUrl(objectName, {
       method: 'PUT',
       'Content-Type': fileType,
       expires: 3600 // 1小时有效
     });
-    
+
     // 生成访问URL
     const accessUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${objectName}`;
-    
+
     res.json({
       signedUrl,
       accessUrl
     });
   } catch (err) {
     console.error('OSS上传错误:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '文件上传配置失败',
-      details: err.message 
+      details: err.message
     });
   }
 });
@@ -833,23 +828,26 @@ app.get('/api/oss/files', async (req, res) => {
   try {
     // 获取目录参数，默认值为 'uploads/'
     let { directory = 'uploads/' } = req.query;
-    
+
     // 确保目录以斜杠结尾
     if (!directory.endsWith('/')) {
       directory += '/';
     }
-    
+
+    // 对目录进行URL编码（确保特殊字符正确处理）
+    const encodedDirectory = encodeURIComponent(directory).replace(/%2F/g, '/');
+
     // 列出指定目录下的所有文件
     const result = await ossClient.list({
-      prefix: directory,
+      prefix: encodedDirectory,
       delimiter: '/',
-      'max-keys': 1000 // 增加返回数量限制
+      'max-keys': 1000
     });
 
-    // 提取文件信息
+    // 提取文件信息 - 处理URL中的%2F
     const files = (result.objects || []).map(file => ({
-      name: file.name.replace(directory, ''), // 移除目录前缀
-      url: `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${file.name}`,
+      name: file.name.replace(encodedDirectory, ''), // 移除目录前缀
+      url: `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${file.name}`.replace(/%2F/g, '%252F'),
       lastModified: file.lastModified,
       size: file.size
     }));
@@ -863,6 +861,8 @@ app.get('/api/oss/files', async (req, res) => {
     });
   }
 });
+
+
 
 // 修改后的ai视觉检查接口，支持批量处理并移动文件
 // app.post('/api/ai-vision-check', async (req, res) => {
@@ -908,27 +908,27 @@ app.get('/api/oss/files', async (req, res) => {
 //         );
 
 //         const aiResponse = response.data.choices?.[0]?.message?.content || "";
-        
+
 //         // 提取回答，并转换为布尔值
 //         const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
 
 //         // 从图片URL中提取文件名（check目录下的文件名）
 //         const urlParts = imageUrl.split('/');
 //         const originalFileName = `check/${urlParts[urlParts.length - 1]}`;
-        
+
 //         // 确定目标文件夹
 //         const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
 //         const targetFileName = `${targetFolder}${urlParts[urlParts.length - 1]}`;
-        
+
 //         try {
 //           // 复制文件到新位置
 //           await ossClient.copy(targetFileName, originalFileName);
-          
+
 //           // 删除原文件
 //           await ossClient.delete(originalFileName);
-          
+
 //           console.log(`[移动文件] 从 ${originalFileName} 移动到 ${targetFileName}`);
-          
+
 //           return { 
 //             imageUrl, 
 //             isAlarmValid,
@@ -964,139 +964,139 @@ app.get('/api/oss/files', async (req, res) => {
 // });
 
 
-// 修改后的AI视觉检查接口（支持OSS文件复制和外部图片URL保存）
-app.post('/api/ai-vision-check', async (req, res) => {
-  try {
-    const { imageUrls } = req.body;
+// // 修改后的AI视觉检查接口（支持OSS文件复制和外部图片URL保存）
+// app.post('/api/ai-vision-check', async (req, res) => {
+//   try {
+//     const { imageUrls } = req.body;
 
-    if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
-      return res.status(400).json({ error: '缺少图片URL或URL格式不正确' });
-    }
+//     if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
+//       return res.status(400).json({ error: '缺少图片URL或URL格式不正确' });
+//     }
 
-    // 辅助函数：判断是否为OSS上的图片
-    const isOssImage = (url) => {
-      return url.includes(`${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com`);
-    };
+//     // 辅助函数：判断是否为OSS上的图片
+//     const isOssImage = (url) => {
+//       return url.includes(`${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com`);
+//     };
 
-    // 辅助函数：下载远程图片并返回Buffer
-    const downloadImage = async (url) => {
-      try {
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
-        return Buffer.from(response.data, 'binary');
-      } catch (error) {
-        console.error(`下载图片 ${url} 失败:`, error);
-        throw new Error(`下载图片失败: ${error.message}`);
-      }
-    };
+//     // 辅助函数：下载远程图片并返回Buffer
+//     const downloadImage = async (url) => {
+//       try {
+//         const response = await axios.get(url, { responseType: 'arraybuffer' });
+//         return Buffer.from(response.data, 'binary');
+//       } catch (error) {
+//         console.error(`下载图片 ${url} 失败:`, error);
+//         throw new Error(`下载图片失败: ${error.message}`);
+//       }
+//     };
 
-    const results = await Promise.all(imageUrls.map(async (imageUrl) => {
-      try {
-        // 调用火山引擎视觉模型（保持不变）
-        const response = await axios.post(
-          'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-          {
-            model: "doubao-1-5-thinking-vision-pro-250428",
-            messages: [
-              {
-                "content": [
-                  {
-                    "image_url": { "url": imageUrl },
-                    "type": "image_url"
-                  },
-                  {
-                    "text": "请认真观察照片,这是摄像头拍摄识别的照片,框内为摄像头的判断内容,这张图片是否判断正确？请只回答'是'或'否'。",
-                    "type": "text"
-                  }
-                ],
-                "role": "user"
-              }
-            ]
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${process.env.AI_API_KEY}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
+//     const results = await Promise.all(imageUrls.map(async (imageUrl) => {
+//       try {
+//         // 调用火山引擎视觉模型（保持不变）
+//         const response = await axios.post(
+//           'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+//           {
+//             model: "doubao-1-5-thinking-vision-pro-250428",
+//             messages: [
+//               {
+//                 "content": [
+//                   {
+//                     "image_url": { "url": imageUrl },
+//                     "type": "image_url"
+//                   },
+//                   {
+//                     "text": "请认真观察照片,这是摄像头拍摄识别的照片,框内为摄像头的判断内容,这张图片是否判断正确？请只回答'是'或'否'。",
+//                     "type": "text"
+//                   }
+//                 ],
+//                 "role": "user"
+//               }
+//             ]
+//           },
+//           {
+//             headers: {
+//               'Authorization': `Bearer ${process.env.AI_API_KEY}`,
+//               'Content-Type': 'application/json'
+//             }
+//           }
+//         );
 
-        const aiResponse = response.data.choices?.[0]?.message?.content || "";
-        const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
-        const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
-        console.log(`处理图片 ${imageUrl}，判断结果: ${isAlarmValid ? '正确' : '错误'}`);
-        
-        // 提取文件名（从URL中获取）
-        const urlParts = imageUrl.split('/');
-        let fileName = urlParts[urlParts.length - 1];
-        
-        // 处理可能的URL参数
-        fileName = fileName.split('?')[0];
-        
-        const targetFileName = `${targetFolder}${fileName}`;
-        let newUrl;
+//         const aiResponse = response.data.choices?.[0]?.message?.content || "";
+//         const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
+//         const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
+//         console.log(`处理图片 ${imageUrl}，判断结果: ${isAlarmValid ? '正确' : '错误'}`);
 
-        try {
-          if (isOssImage(imageUrl)) {
-            // 如果是OSS上的图片，直接复制
-            const originalFileName = `check/${fileName}`;
-            await ossClient.copy(targetFileName, originalFileName);
-            console.log(`[复制文件] 从 ${originalFileName} 复制到 ${targetFileName}`);
-          } else {
-            // 如果是外部图片，下载后上传到OSS
-            const imageBuffer = await downloadImage(imageUrl);
-            
-            // 提取文件扩展名，设置正确的MIME类型
-            const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
-            const contentType = ext === 'png' ? 'image/png' : 
-                               ext === 'gif' ? 'image/gif' : 
-                               'image/jpeg';
-            
-            await ossClient.put(targetFileName, imageBuffer, {
-              headers: {
-                'Content-Type': contentType
-              }
-            });
-            console.log(`[上传文件] 从 ${imageUrl} 上传到 ${targetFileName}`);
-          }
-          
-          // 生成新的图片URL
-          newUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`;
-          
-          return { 
-            imageUrl, 
-            isAlarmValid,
-            newUrl,
-            status: 'success'
-          };
-        } catch (fileError) {
-          console.error('文件处理失败:', fileError);
-          return { 
-            imageUrl, 
-            isAlarmValid,
-            error: '文件处理失败',
-            details: fileError.message
-          };
-        }
-      } catch (error) {
-        console.error(`处理图片 ${imageUrl} 时出错:`, error);
-        return { 
-          imageUrl, 
-          isAlarmValid: false,
-          error: error.message 
-        };
-      }
-    }));
+//         // 提取文件名（从URL中获取）
+//         const urlParts = imageUrl.split('/');
+//         let fileName = urlParts[urlParts.length - 1];
 
-    res.json({ results });
+//         // 处理可能的URL参数
+//         fileName = fileName.split('?')[0];
 
-  } catch (error) {
-    console.error('批量AI图像识别失败:', error);
-    res.status(500).json({ 
-      error: '批量AI图像识别失败',
-      details: error.message
-    });
-  }
-});
+//         const targetFileName = `${targetFolder}${fileName}`;
+//         let newUrl;
+
+//         try {
+//           if (isOssImage(imageUrl)) {
+//             // 如果是OSS上的图片，直接复制
+//             const originalFileName = `check/${fileName}`;
+//             await ossClient.copy(targetFileName, originalFileName);
+//             console.log(`[复制文件] 从 ${originalFileName} 复制到 ${targetFileName}`);
+//           } else {
+//             // 如果是外部图片，下载后上传到OSS
+//             const imageBuffer = await downloadImage(imageUrl);
+
+//             // 提取文件扩展名，设置正确的MIME类型
+//             const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+//             const contentType = ext === 'png' ? 'image/png' : 
+//                                ext === 'gif' ? 'image/gif' : 
+//                                'image/jpeg';
+
+//             await ossClient.put(targetFileName, imageBuffer, {
+//               headers: {
+//                 'Content-Type': contentType
+//               }
+//             });
+//             console.log(`[上传文件] 从 ${imageUrl} 上传到 ${targetFileName}`);
+//           }
+
+//           // 生成新的图片URL
+//           newUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`;
+
+//           return { 
+//             imageUrl, 
+//             isAlarmValid,
+//             newUrl,
+//             status: 'success'
+//           };
+//         } catch (fileError) {
+//           console.error('文件处理失败:', fileError);
+//           return { 
+//             imageUrl, 
+//             isAlarmValid,
+//             error: '文件处理失败',
+//             details: fileError.message
+//           };
+//         }
+//       } catch (error) {
+//         console.error(`处理图片 ${imageUrl} 时出错:`, error);
+//         return { 
+//           imageUrl, 
+//           isAlarmValid: false,
+//           error: error.message 
+//         };
+//       }
+//     }));
+
+//     res.json({ results });
+
+//   } catch (error) {
+//     console.error('批量AI图像识别失败:', error);
+//     res.status(500).json({ 
+//       error: '批量AI图像识别失败',
+//       details: error.message
+//     });
+//   }
+// });
 
 
 // // 修改后的AI视觉检查接口（支持打印AI判断结果）
@@ -1158,17 +1158,17 @@ app.post('/api/ai-vision-check', async (req, res) => {
 //         const aiResponse = response.data.choices?.[0]?.message?.content || "";
 //         // 打印AI的原始判断结果
 //         console.log(`[AI判断结果] 图片URL: ${imageUrl}，判断结果: ${aiResponse}`);
-        
+
 //         const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
 //         const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
-        
+
 //         // 提取文件名（从URL中获取）
 //         const urlParts = imageUrl.split('/');
 //         let fileName = urlParts[urlParts.length - 1];
-        
+
 //         // 处理可能的URL参数
 //         fileName = fileName.split('?')[0];
-        
+
 //         const targetFileName = `${targetFolder}${fileName}`;
 //         let newUrl;
 
@@ -1181,13 +1181,13 @@ app.post('/api/ai-vision-check', async (req, res) => {
 //           } else {
 //             // 如果是外部图片，下载后上传到OSS
 //             const imageBuffer = await downloadImage(imageUrl);
-            
+
 //             // 提取文件扩展名，设置正确的MIME类型
 //             const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
 //             const contentType = ext === 'png' ? 'image/png' : 
 //                                ext === 'gif' ? 'image/gif' : 
 //                                'image/jpeg';
-            
+
 //             await ossClient.put(targetFileName, imageBuffer, {
 //               headers: {
 //                 'Content-Type': contentType
@@ -1195,10 +1195,10 @@ app.post('/api/ai-vision-check', async (req, res) => {
 //             });
 //             console.log(`[上传文件] 从 ${imageUrl} 上传到 ${targetFileName}`);
 //           }
-          
+
 //           // 生成新的图片URL
 //           newUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`;
-          
+
 //           return { 
 //             imageUrl, 
 //             isAlarmValid,
@@ -1237,13 +1237,199 @@ app.post('/api/ai-vision-check', async (req, res) => {
 //   }
 // });
 
+// 修改后的AI视觉检查接口（支持引发原因验证）
+app.post('/api/ai-vision-check', async (req, res) => {
+  try {
+    const { images } = req.body; // 修改为接收图片数组，每个图片对象包含url和cause
+
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ error: '缺少图片数据或格式不正确' });
+    }
+
+    // 辅助函数：判断是否为OSS上的图片
+    const isOssImage = (url) => {
+      return url.includes(`${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com`);
+    };
+
+    // 辅助函数：下载远程图片并返回Buffer
+    const downloadImage = async (url) => {
+      try {
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        return Buffer.from(response.data, 'binary');
+      } catch (error) {
+        console.error(`下载图片 ${url} 失败:`, error);
+        throw new Error(`下载图片失败: ${error.message}`);
+      }
+    };
+
+    const CAUSES_MAPPING = {
+      '1': '声爆',
+      '2': '烟火',
+      '3': '异物入侵',
+      '4': '飞鸟入侵',
+      '5': '树木生长',
+      '6': '异常放电',
+      '7': '雷电侦测',
+      '8': '大型车辆',
+      '9': '杆塔倾斜',
+      '10': '人员入侵',
+      '11': '鸟巢',
+      '12': '吊车',
+      '13': '塔吊',
+      '14': '翻斗车',
+      '15': '推土机',
+      '16': '水泥泵车',
+      '17': '山火',
+      '18': '烟雾',
+      '19': '挖掘机',
+      '20': '打桩机'
+      // 可以继续添加其他映射关系
+    };
+
+
+    const results = await Promise.all(images.map(async (imageData) => {
+      try {
+        const { imageUrl, cause } = imageData;
+
+        if (!imageUrl) {
+          return {
+            imageUrl: '',
+            cause,
+            error: '缺少图片URL',
+            status: 'error'
+          };
+        }
+
+        // 获取引发原因的中文描述
+        const causeDescription = CAUSES_MAPPING[cause] || `未知原因(${cause})`;
+        const causesArray = cause.split(',');
+        const causeDescriptions = causesArray.map(c =>
+          CAUSES_MAPPING[c.trim()] || `未知原因(${c.trim()})`
+        ).join('、');
+
+        // 调用火山引擎视觉模型
+        const response = await axios.post(
+
+          'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+          {
+            model: "doubao-1-5-thinking-vision-pro-250428",
+            messages: [
+              {
+                "content": [
+                  {
+                    "image_url": { "url": imageUrl },
+                    "type": "image_url"
+                  },
+                  {
+                    "text": `请认真观察照片,这是摄像头拍摄识别的照片,框内为摄像头的判断内容,报警引发原因的:"${causeDescriptions}",这次报警是否判断正确？请只回答'是'或'否'。`,
+                    "type": "text"
+                  }
+                ],
+                "role": "user"
+              }
+            ]
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.AI_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        const aiResponse = response.data.choices?.[0]?.message?.content || "";
+        const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
+        const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
+
+        console.log(`处理图片 ${imageUrl}，引发原因: ${causeDescription}，判断结果: ${isAlarmValid ? '正确' : '错误'}`);
+
+        // 提取文件名（从URL中获取）
+        const urlParts = imageUrl.split('/');
+        let fileName = urlParts[urlParts.length - 1];
+
+        // 处理可能的URL参数
+        fileName = fileName.split('?')[0];
+
+        const targetFileName = `${targetFolder}${fileName}`;
+        let newUrl;
+
+        try {
+          if (isOssImage(imageUrl)) {
+            // 如果是OSS上的图片，直接复制
+            const originalFileName = `check/${fileName}`;
+            await ossClient.copy(targetFileName, originalFileName);
+            console.log(`[复制文件] 从 ${originalFileName} 复制到 ${targetFileName}`);
+          } else {
+            // 如果是外部图片，下载后上传到OSS
+            const imageBuffer = await downloadImage(imageUrl);
+
+            // 提取文件扩展名，设置正确的MIME类型
+            const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+            const contentType = ext === 'png' ? 'image/png' :
+              ext === 'gif' ? 'image/gif' :
+                'image/jpeg';
+
+            await ossClient.put(targetFileName, imageBuffer, {
+              headers: {
+                'Content-Type': contentType
+              }
+            });
+            console.log(`[上传文件] 从 ${imageUrl} 上传到 ${targetFileName}`);
+          }
+
+          // 生成新的图片URL
+          newUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`;
+
+          return {
+            imageUrl,
+            cause,
+            causeDescription,
+            isAlarmValid,
+            newUrl,
+            status: 'success'
+          };
+        } catch (fileError) {
+          console.error('文件处理失败:', fileError);
+          return {
+            imageUrl,
+            cause,
+            causeDescription,
+            isAlarmValid,
+            error: '文件处理失败',
+            details: fileError.message,
+            status: 'error'
+          };
+        }
+      } catch (error) {
+        console.error(`处理图片 ${imageData.imageUrl} 时出错:`, error);
+        return {
+          imageUrl: imageData.imageUrl,
+          cause: imageData.cause,
+          isAlarmValid: false,
+          error: error.message,
+          status: 'error'
+        };
+      }
+    }));
+
+    res.json({ results });
+
+  } catch (error) {
+    console.error('批量AI图像识别失败:', error);
+    res.status(500).json({
+      error: '批量AI图像识别失败',
+      details: error.message
+    });
+  }
+});
+
 
 // 更新用户个人信息接口
 app.post('/api/user/update-profile', async (req, res) => {
   try {
     // 从Authorization头部获取token
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
       return res.status(401).json({ error: '未提供认证令牌' });
     }
@@ -1335,15 +1521,15 @@ app.post('/api/user/update-profile', async (req, res) => {
 
   } catch (err) {
     console.error('更新个人信息失败:', err);
-    
+
     if (err.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: '无效的令牌' });
     }
-    
+
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: '令牌已过期' });
     }
-    
+
     res.status(500).json({ error: '更新个人信息失败', details: err.message });
   }
 });
@@ -1431,15 +1617,16 @@ app.put('/api/user/settings', async (req, res) => {
 
 
 
-// 1. 获取设备全部图片（固定参数版）
+// 1. 获取设备全部图片（带日期筛选）
 app.post('/api/picture/get-by-device-code', async (req, res) => {
   try {
-    const {day, deviceCode, page, size } = req.query;
-    const channel=1;
-    const towerId=1;
-    const userId=1282;
+    const { day, deviceCode, page, size } = req.query;
+    const channel = 1;
+    const towerId = 1;
+    const userId = 1282;
+
     // 验证必填参数
-    if ( !deviceCode || !page || !size) {
+    if (!deviceCode || !page || !size) {
       return res.status(400).json({ error: '缺少必要参数' });
     }
 
@@ -1452,8 +1639,42 @@ app.post('/api/picture/get-by-device-code', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('获取设备图片失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '获取设备图片失败',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+// 获取设备视频列表接口
+app.post('/api/device-video/get-by-device-code', async (req, res) => {
+  try {
+    const { day, deviceCode, page, size } = req.body;
+
+    // 验证必填参数
+    if (!deviceCode || !page || !size) {
+      return res.status(400).json({ error: '缺少必要参数' });
+    }
+
+    // 构建查询参数
+    const params = new URLSearchParams({
+      'device-code': deviceCode,
+      'day': day || '', // 空字符串表示不按天筛选
+      'page': page.toString(),
+      'size': size.toString()
+    });
+
+    // 调用原始接口
+    const response = await axios.post(
+      `http://47.104.136.74:20443/v1/device-video/get-by-device-code?${params.toString()}`
+    );
+
+    // 返回原始接口的响应
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取设备视频列表失败:', error);
+    res.status(500).json({
+      error: '获取设备视频列表失败',
       details: error.response?.data || error.message
     });
   }
@@ -1462,10 +1683,10 @@ app.post('/api/picture/get-by-device-code', async (req, res) => {
 // 4. 设备抓拍//(成功)
 app.post('/api/hub/device-snap-by-device-code', async (req, res) => {
   try {
-    const {deviceCode } = req.query;
-    const userId=1282;
-    const towerId=1;
-    const channel=1;
+    const { deviceCode } = req.query;
+    const userId = 1282;
+    const towerId = 1;
+    const channel = 1;
     // 验证必填参数
     if (!deviceCode) {
       return res.status(400).json({ error: '缺少必要参数' });
@@ -1478,7 +1699,7 @@ app.post('/api/hub/device-snap-by-device-code', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('设备抓拍失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '设备抓拍失败',
       details: error.response?.data || error.message
     });
@@ -1501,7 +1722,7 @@ app.post('/api/device-params/get-by-device-code', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('获取设备状态失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '获取设备状态失败',
       details: error.response?.data || error.message
     });
@@ -1524,7 +1745,7 @@ app.post('/api/device/restart', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('设备重启失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '设备重启失败',
       details: error.response?.data || error.message
     });
@@ -1548,7 +1769,7 @@ app.post('/api/device-preset/rotation/:direction', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('云台方向控制失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '云台方向控制失败',
       details: error.response?.data || error.message
     });
@@ -1571,7 +1792,7 @@ app.post('/api/device-preset/reset', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('云台复位失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '云台复位失败',
       details: error.response?.data || error.message
     });
@@ -1590,8 +1811,8 @@ app.post('/api/device/decrease/:zoom_type', async (req, res) => {
 
     // 根据变焦类型设置参数
     let value, zoomRate = 1, channel = 1;
-    
-    switch(zoom_type) {
+
+    switch (zoom_type) {
       case 'zoom-in':
         value = -20;
         break;
@@ -1615,7 +1836,7 @@ app.post('/api/device/decrease/:zoom_type', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('变焦控制失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '变焦控制失败',
       details: error.response?.data || error.message
     });
@@ -1647,7 +1868,7 @@ app.post('/api/device/heating-action', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('加热控制失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '加热控制失败',
       details: error.response?.data || error.message
     });
@@ -1670,7 +1891,7 @@ app.post('/api/device-preset/wiper', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('雨刮控制失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '雨刮控制失败',
       details: error.response?.data || error.message
     });
@@ -1698,56 +1919,101 @@ app.post('/api/hub/device-video-by-device-code', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('拍摄视频失败:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: '拍摄视频失败',
       details: error.response?.data || error.message
     });
   }
 });
 
-
-
-//新接口待添加
-
-// 获取设备视频列表接口
-app.post('/api/device-video/get-by-device-code', async (req, res) => {
+// 创建报警信息接口
+app.post('/api/alarm/create', async (req, res) => {
   try {
-    const { day, deviceCode, page, size } = req.body;
-    
-    // 验证必填参数
-    if (!deviceCode || !page || !size) {
-      return res.status(400).json({ error: '缺少必要参数' });
+    const {
+      causes,           // 危险类型（必填）
+      level,            // 危险程度（必填）
+      alarmImagePath,   // 照片位置（必填）
+      deviceCode,       // 设备代码（必填）
+      frameDistance = "[]",      // 默认值
+      channelLocation = "定焦",  // 默认值
+      aiResult = "{}",           // 默认值
+      channel = "1"              // 默认值
+    } = req.body;
+
+    // 验证必填字段
+    if (!causes || !level || !alarmImagePath || !deviceCode) {
+      return res.status(400).json({
+        error: '缺少必要参数',
+        required: {
+          causes: '危险类型',
+          level: '危险程度',
+          alarmImagePath: '照片位置',
+          deviceCode: '设备代码'
+        },
+        received: req.body
+      });
     }
 
-    // 构建查询参数
-    const params = new URLSearchParams({
-      'device-code': deviceCode,
-      'day': day || '', // 空字符串表示不按天筛选
-      'page': page.toString(),
-      'size': size.toString()
-    });
+    // 验证参数类型
+    if (typeof level !== 'number') {
+      return res.status(400).json({ error: 'level必须是数字' });
+    }
+
+    // 构建请求数据
+    const requestData = {
+      causes,
+      level,
+      alarmImagePath,
+      deviceCode,
+      frameDistance,
+      channelLocation,
+      aiResult,
+      channel
+    };
+
+    console.log('发送报警创建请求:', requestData);
 
     // 调用原始接口
     const response = await axios.post(
-      `http://47.104.136.74:20443/v1/device-video/get-by-device-code?${params.toString()}`
+      'http://47.104.136.74:20443/v1/alarm/create',
+      requestData,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // 10秒超时
+      }
     );
 
     // 返回原始接口的响应
     res.json(response.data);
+
   } catch (error) {
-    console.error('获取设备视频列表失败:', error);
-    res.status(500).json({ 
-      error: '获取设备视频列表失败',
-      details: error.response?.data || error.message
+    console.error('创建报警失败:', {
+      error: error.message,
+      requestData: req.body,
+      apiError: error.response?.data
+    });
+
+    // 返回详细的错误信息
+    res.status(error.response?.status || 500).json({
+      error: '创建报警失败',
+      details: error.response?.data || error.message,
+      request: req.body
     });
   }
 });
+
+
+//新接口待添加
+
+
 
 // 6. 获取报警图片（固定参数版）
 app.post('/api/alarm/query-early-alarm', async (req, res) => {
   try {
     const { page = 1, size = 1000 } = req.query; // 只接收page和size参数
-    
+
     // 固定参数
     const orderBy = 'alarm.created_at';
     const order = 'desc';
@@ -1755,7 +2021,7 @@ app.post('/api/alarm/query-early-alarm', async (req, res) => {
 
     // 验证必填参数
     if (!page || !size) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: '缺少必要参数',
         required: {
           page: 'number (页码)',
@@ -1793,11 +2059,11 @@ app.post('/api/alarm/query-early-alarm', async (req, res) => {
       error: error.message,
       stack: error.stack
     });
-    
-    res.status(error.response?.status || 500).json({ 
+
+    res.status(error.response?.status || 500).json({
       error: '获取报警图片失败',
-      details: process.env.NODE_ENV === 'development' 
-        ? error.response?.data || error.message 
+      details: process.env.NODE_ENV === 'development'
+        ? error.response?.data || error.message
         : undefined
     });
   }
@@ -1807,7 +2073,7 @@ app.post('/api/alarm/query-early-alarm', async (req, res) => {
 app.post('/api/alarm/alarm', express.text({ type: ['text/plain'] }), express.json(), async (req, res) => {
   try {
     let requestBody;
-    
+
     // 根据 Content-Type 处理不同的请求体格式
     if (req.is('text/plain')) {
       try {
@@ -1823,13 +2089,13 @@ app.post('/api/alarm/alarm', express.text({ type: ['text/plain'] }), express.jso
 
     const { id } = requestBody;
 
-    const type=4;
-    const level=1;
-    const causes="8";
+    const type = 4;
+    const level = 1;
+    const causes = "8";
 
     // 验证必填参数
     if (id === undefined) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: '缺少必要参数',
         required: {
           type: 'number',
@@ -1855,13 +2121,18 @@ app.post('/api/alarm/alarm', express.text({ type: ['text/plain'] }), express.jso
       requestData: req.body,
       apiError: error.response?.data
     });
-    
-    res.status(error.response?.status || 500).json({ 
+
+    res.status(error.response?.status || 500).json({
       error: '删除报警错误照片失败',
       details: error.response?.data || error.message
     });
   }
 });
+
+
+
+
+
 
 
 

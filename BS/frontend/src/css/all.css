@@ -7,7 +7,6 @@
 /* ========== 侧边导航栏 ========== */
 .sidebar {
   width: 185px;
-  background-color: #f8f9fa;
   padding: 20px;
   border-right: 1px solid #dee2e6;
   height: 100vh;
@@ -136,9 +135,18 @@
   background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 5px 10px;
+  padding: 10px 20px;
   margin-left: 5px;
-  border-radius: 4px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.edit-button{
+  background-color: #67b4f3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-left: 5px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
@@ -164,7 +172,7 @@
 }
 
 .form-group {
-  margin-bottom: 15px; /* 统一表单组间距 */
+  margin-bottom: 15px; 
 }
 
 .form-row {
@@ -312,8 +320,18 @@
   color: white;
   background-color: #f44336;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
+  padding: 10px 20px;
+  margin-left: 5px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.stop-stream-button{
+  color: white;
+  background-color: #e148ff;
+  border: none;
+  padding: 10px 20px;
+  margin-left: 5px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
@@ -592,16 +610,7 @@
   border-radius: 3px;
 }
 
-/* 文件卡片基础样式 */
-.file-card {
-  flex: 0 0 auto; /* 不拉伸，保持原有尺寸 */
-  width: 200px; /* 固定宽度 */
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
+
 
 .file-card:hover {
   transform: translateY(-3px);
@@ -866,7 +875,7 @@ body.dark {
   gap: 10px;
 }
 
-.control-btn {
+.control-btn1 {
   padding: 8px 16px;
   border-radius: 4px;
   border: none;
@@ -926,19 +935,20 @@ body.dark {
   100% { opacity: 0; }
 }
 
-/* 视频播放器容器 */
+/* 视频播放器容器样式 */
 .video-player-container {
+  width: 800px;
+  height: 600px;
   position: relative;
-  border-radius: 6px;
   overflow: hidden;
-  background: #000;
-  margin-bottom: 15px;
+  background-color: #000; /* 背景色设为黑色，增强视频观看体验 */
 }
 
+/* 视频元素样式 */
 .stream-video {
   width: 100%;
-  max-width: 100%;
-  display: block;
+  height: 100%;
+  object-fit: contain; /* 保持视频比例，不拉伸变形 */
 }
 
 /* 进度条样式 */
@@ -1105,6 +1115,125 @@ body.dark {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+}
+/* .device-selector {
+  position: relative;
+  width: 240px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.device-selector select {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px; 
+  font-size: 14px;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: #333;
+  background: transparent;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 3; 
+} */
+.device-selector {
+  /* 容器样式 - 模拟下拉框外观 */
+  position: relative;
+  width: 240px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+/* 利用伪元素创建自定义装饰 */
+.device-selector::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background-color: #f5f5f5;
+  border-left: 1px solid #ddd;
+  pointer-events: none; /* 允许点击穿透到select */
+  z-index: 1;
+}
+
+/* 自定义箭头 */
+.device-selector::before {
+  content: "";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid #666;
+  border-bottom: 2px solid #666;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* select元素样式调整 - 尽量与容器融合 */
+.device-selector select {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px; /* 给右侧箭头留出空间 */
+  font-size: 14px;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: #000000;
+  background: transparent;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 3; /* 确保select在装饰元素上方 */
+}
+
+/* 聚焦状态通过容器反馈 */
+.device-selector select:focus {
+  outline: none;
+}
+
+.device-selector select:focus + .focus-indicator {
+  opacity: 1;
+}
+
+/* 悬停状态 */
+.device-selector:hover {
+  border-color: #4bf0be;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 禁用状态 */
+.device-selector select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.device-selector select:disabled + .focus-indicator {
+  display: none;
+}
+
+/* 辅助聚焦指示器 */
+.device-selector .focus-indicator {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border: 2px solid #4d90fe;
+  border-radius: 9px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 4;
 }
 
 .btn-primary {
@@ -1338,7 +1467,7 @@ body.dark {
 }
 
 .file-card {
-  width: 200px;
+  width: 330px;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
@@ -1353,10 +1482,321 @@ body.dark {
 .file-meta {
   display: flex;
   flex-direction: column;
-  font-size: 0.8rem;
+  font-size: 1.3rem;
   color: #666;
 }
 
 .file-meta span {
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
+
+/* 控制行容器 - 确保两个控制区在同一行 */
+.control-row {
+  display: flex;
+  gap: 20px; /* 两个控制区之间的间距 */
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 15px;
+}
+
+/* 控制区域容器 - 内容居中且两个区域等宽 */
+.control-section {
+  display: flex;
+  flex: 1; /* 两个控制区平分宽度 */
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* 顶部对齐 */
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background-color: #fafafa;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+  min-height: 280px; /* 固定最小高度，确保两个区域高度一致 */
+}
+
+/* 控制区域标题 - 统一标题样式 */
+.control-section h4 {
+  margin: 0 0 15px 0;
+  text-align: center;
+  color: #444;
+  font-size: 16px;
+  height: 20px; /* 固定标题高度，确保对齐 */
+}
+
+/* 方向控制容器样式 - 调整以匹配整体布局 */
+.direction-controls {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+/* 按钮行容器 */
+.direction-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 基础控制按钮样式 */
+.control-btn {
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 方向按钮特定样式 */
+.direction-btn {
+  position: relative;
+}
+
+/* 按钮图标补充 */
+.direction-btn::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* 方向按钮图标 */
+.direction-btn:nth-child(1)::before { content: '↖'; }
+.direction-btn:nth-child(2)::before { content: '↑'; }
+.direction-btn:nth-child(3)::before { content: '↗'; }
+.direction-row:nth-child(2) .direction-btn:nth-child(1)::before { content: '←'; }
+.direction-row:nth-child(2) .direction-btn:nth-child(3)::before { content: '→'; }
+.direction-row:nth-child(3) .direction-btn:nth-child(1)::before { content: '↙'; }
+.direction-row:nth-child(3) .direction-btn:nth-child(2)::before { content: '↓'; }
+.direction-row:nth-child(3) .direction-btn:nth-child(3)::before { content: '↘'; }
+
+/* 按钮交互状态 */
+.control-btn:hover {
+  background-color: #e9f5ff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn:active {
+  background-color: #dceeff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: scale(0.96);
+}
+
+.control-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f0f0f0;
+}
+
+/* 复位按钮特殊样式 */
+.reset-btn {
+  background-color: #fff0f0;
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+.reset-btn:hover {
+  background-color: #ffe0e0;
+}
+
+.reset-btn:active {
+  background-color: #ffd0d0;
+}
+
+/* 变焦控制区域容器 */
+.zoom-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 田字型网格容器 */
+.zoom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 70px; /* 从10px增加到20px或更大 */
+  width: 100%;
+  max-width: 280px; /* 可能需要相应增加整体宽度 */
+}
+
+/* 变焦按钮基础样式 */
+.control-btn2 {
+  width: 100%; /* 使用网格控制大小 */
+  height: 50px;
+  padding: 0 10px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  border: none;
+  border-radius: 6px;
+  background-color: #f0f9ff;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮交互状态 */
+.control-btn2:enabled:hover {
+  background-color: #e0f0ff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn2:enabled:active {
+  background-color: #d0e8ff;
+  transform: scale(0.96);
+}
+
+.control-btn2:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+/* 加载状态样式 */
+.control-btn2.loading {
+  background-color: #f8f8f8;
+  color: #666;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn2.loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: loading 1.5s infinite;
+}
+
+/* 成功状态样式 */
+.control-btn2.success {
+  border-color: #4cd964;
+  color: #4cd964;
+  background-color: #f7fff9;
+}
+
+/* 加载动画 */
+@keyframes loading {
+  100% {
+    left: 100%;
+  }
+}
+/* 确保子容器居中 */
+.control-section .direction-controls,
+.control-section .zoom-controls,
+.control-section .other-controls {
+  width: auto; /* 调整为自动宽度，避免过度拉伸 */
+  display: flex;
+  justify-content: center;
+}
+
+/* 在 all.css 中添加以下样式 */
+
+/* 选择指示器 */
+.selection-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 123, 255, 0.8);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.file-card.selected {
+  border: 2px solid #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+/* AI检测结果样式 */
+.ai-results-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.result-card {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+}
+
+.result-card.valid {
+  border-left: 4px solid #28a745;
+}
+
+.result-card.invalid {
+  border-left: 4px solid #dc3545;
+}
+
+.result-card.error {
+  border-left: 4px solid #ffc107;
+}
+
+.result-image img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.result-info {
+  margin-top: 0.5rem;
+}
+
+.result-valid {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.result-invalid {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.result-error {
+  color: #dc3545;
+  font-size: 0.9rem;
+}
+
