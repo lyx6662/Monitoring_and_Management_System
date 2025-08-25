@@ -1,13 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import '../css/all.css';
+import {
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Typography,
+  Box,
+  Alert,
+  Link,
+  Divider,
+  InputAdornment,
+  IconButton
+} from '@mui/material';
+import {
+  Visibility,
+  VisibilityOff,
+  Refresh,
+  AccountCircle,
+  Lock,
+  Email,
+  Phone,
+  LocationOn
+} from '@mui/icons-material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+  typography: {
+    h4: {
+      fontWeight: 600,
+    },
+  },
+});
 
 function Login() {
   // 登录状态
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // 验证码状态
   const [captcha, setCaptcha] = useState({
@@ -15,6 +57,7 @@ function Login() {
     userAnswer: ''
   });
   const [showCaptcha, setShowCaptcha] = useState(false);
+  
   // 注册状态
   const [registerData, setRegisterData] = useState({
     username: '',
@@ -237,223 +280,342 @@ function Login() {
   };
 
   return (
-    <div className="blue-background">
-      <div className="login-container">
-        <h2 className="login-title">{isRegistering ? '用户注册' : '欢迎登陆'}</h2>
-
-        {error && <div className="error-message">{error}</div>}
-
-        {isRegistering ? (
-          <form onSubmit={handleRegister} className="register-form">
-            <div className="form-group">
-              <input
-                type="text"
-                name="username"
-                className="login-input"
-                placeholder="用户名必须3位及以上"
-                value={registerData.username}
-                onChange={handleRegisterChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="text"
-                name="account"
-                className="login-input"
-                placeholder="账号必须5位及以上"
-                value={registerData.account}
-                onChange={handleRegisterChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="password"
-                name="password"
-                className="login-input"
-                placeholder="密码必须6位及以上"
-                value={registerData.password}
-                onChange={handleRegisterChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="password"
-                name="confirmPassword"
-                className="login-input"
-                placeholder="确认密码"
-                value={registerData.confirmPassword}
-                onChange={handleRegisterChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="tel"
-                name="phone"
-                className="login-input"
-                placeholder="手机号"
-                value={registerData.phone}
-                onChange={handleRegisterChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="email"
-                name="email"
-                className="login-input"
-                placeholder="邮箱 (可选)"
-                value={registerData.email}
-                onChange={handleRegisterChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="text"
-                name="address"
-                className="login-input"
-                placeholder="地址 (可选)"
-                value={registerData.address}
-                onChange={handleRegisterChange}
-              />
-            </div>
-
-            {showCaptcha && (
-              <div className="captcha-container">
-                <div className="captcha-row">
-                  <img
-                    src={captcha.imgUrl}
-                    alt="验证码"
-                    onClick={fetchCaptcha}
-                    className="captcha-img"
-                  />
-                  <span
-                    className="refresh-text"
-                    onClick={fetchCaptcha}
-                  >
-                    看不清？点击刷新
-                  </span>
-                </div>
-                <div className="form-group">
-                  <span className="captcha-text">{captcha.codeText}</span>
-                  <input
-                    type="text"
-                    name="captchaAnswer"
-                    className="captcha-input"
-                    placeholder="请输入验证码答案"
-                    value={registerData.captchaAnswer}
-                    onChange={handleRegisterChange}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
-            <button type="submit" className="login-btn register-btn">
-              立即注册
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleLogin}>
-            <input
-              type="text"
-              className="login-username"
-              placeholder="请输入您的账号"
-              value={account}
-              onChange={(e) => setAccount(e.target.value)}
-              required
-            />
-
-            <input
-              type="password"
-              className="login-password"
-              placeholder="请输入您的密码"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            {showCaptcha && (
-              <div className="captcha-container">
-                <div className="captcha-row">
-                  <img
-                    src={captcha.imgUrl}
-                    alt="验证码"
-                    onClick={fetchCaptcha}
-                    className="captcha-img"
-                  />
-                  <span
-                    className="refresh-text"
-                    onClick={fetchCaptcha}
-                  >
-                    看不清？点击刷新
-                  </span>
-                </div>
-                <div className="captcha-row">
-                  <input
-                    type="text"
-                    className="captcha-input"
-                    placeholder="请输入验证码答案"
-                    value={captcha.userAnswer}
-                    onChange={(e) => setCaptcha({
-                      ...captcha,
-                      userAnswer: e.target.value
-                    })}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="login-remember">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberPassword}
-                onChange={(e) => setRememberPassword(e.target.checked)}
-              />
-              <label htmlFor="remember">记住密码</label>
-              <a
-                href="#"
-                className="login-forget"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleForgotPassword();
-                }}
-              >
-                忘记密码?
-              </a>
-            </div>
-
-            <button type="submit" className="login-btn">
-              安全登录
-            </button>
-          </form>
-        )}
-
-        <p className="login-register">
-          {isRegistering
-            ? '已有账号? '
-            : '还没有账号? '}
-          <a
-            href="#"
-            className="login-link"
-            onClick={toggleRegister}
+    <ThemeProvider theme={theme}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2
+        }}
+      >
+        <Container maxWidth="sm">
+          <Paper
+            elevation={8}
+            sx={{
+              padding: 4,
+              borderRadius: 2,
+              background: 'white'
+            }}
           >
-            {isRegistering ? '立即登录' : '立即注册'}
-          </a>
-        </p>
-      </div>
-    </div>
+            <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+              {isRegistering ? '用户注册' : '欢迎登陆'}
+            </Typography>
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            {isRegistering ? (
+              <Box component="form" onSubmit={handleRegister}>
+                <TextField
+                  fullWidth
+                  label="用户名"
+                  name="username"
+                  value={registerData.username}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  required
+                  helperText="用户名必须3位及以上"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccountCircle />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="账号"
+                  name="account"
+                  value={registerData.account}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  required
+                  helperText="账号必须5位及以上"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccountCircle />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="密码"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={registerData.password}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  required
+                  helperText="密码必须6位及以上"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="确认密码"
+                  name="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={registerData.confirmPassword}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="手机号"
+                  name="phone"
+                  value={registerData.phone}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Phone />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="邮箱"
+                  name="email"
+                  type="email"
+                  value={registerData.email}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="地址"
+                  name="address"
+                  value={registerData.address}
+                  onChange={handleRegisterChange}
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationOn />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                {showCaptcha && (
+                  <Box sx={{ mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Box
+                        component="img"
+                        src={captcha.imgUrl}
+                        alt="验证码"
+                        onClick={fetchCaptcha}
+                        sx={{
+                          height: 40,
+                          cursor: 'pointer',
+                          border: '1px solid #ddd',
+                          borderRadius: 1
+                        }}
+                      />
+                      <IconButton onClick={fetchCaptcha} sx={{ ml: 1 }}>
+                        <Refresh />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                        看不清？点击刷新
+                      </Typography>
+                    </Box>
+                    <TextField
+                      fullWidth
+                      label="验证码"
+                      name="captchaAnswer"
+                      value={registerData.captchaAnswer}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </Box>
+                )}
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  sx={{ mt: 3, mb: 2 }}
+                >
+                  立即注册
+                </Button>
+              </Box>
+            ) : (
+              <Box component="form" onSubmit={handleLogin}>
+                <TextField
+                  fullWidth
+                  label="账号"
+                  value={account}
+                  onChange={(e) => setAccount(e.target.value)}
+                  margin="normal"
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccountCircle />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="密码"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  margin="normal"
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                {showCaptcha && (
+                  <Box sx={{ mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Box
+                        component="img"
+                        src={captcha.imgUrl}
+                        alt="验证码"
+                        onClick={fetchCaptcha}
+                        sx={{
+                          height: 40,
+                          cursor: 'pointer',
+                          border: '1px solid #ddd',
+                          borderRadius: 1
+                        }}
+                      />
+                      <IconButton onClick={fetchCaptcha} sx={{ ml: 1 }}>
+                        <Refresh />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                        看不清？点击刷新
+                      </Typography>
+                    </Box>
+                    <TextField
+                      fullWidth
+                      label="验证码"
+                      value={captcha.userAnswer}
+                      onChange={(e) => setCaptcha({
+                        ...captcha,
+                        userAnswer: e.target.value
+                      })}
+                      required
+                    />
+                  </Box>
+                )}
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={rememberPassword}
+                        onChange={(e) => setRememberPassword(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="记住密码"
+                  />
+                  <Link
+                    href="#"
+                    onClick={handleForgotPassword}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    忘记密码?
+                  </Link>
+                </Box>
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  sx={{ mt: 3, mb: 2 }}
+                >
+                  安全登录
+                </Button>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="body2" align="center">
+              {isRegistering ? '已有账号? ' : '还没有账号? '}
+              <Link
+                href="#"
+                onClick={toggleRegister}
+                sx={{ cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                {isRegistering ? '立即登录' : '立即注册'}
+              </Link>
+            </Typography>
+          </Paper>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }
 

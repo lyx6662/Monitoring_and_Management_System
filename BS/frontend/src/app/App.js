@@ -1,22 +1,85 @@
-import '../css/all.css';
+import React, { useState, useEffect } from "react";
+import {
+  ThemeProvider as MUIThemeProvider,
+  createTheme,
+  styled,
+  CssBaseline,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Container
+} from '@mui/material';
 import DeviceList from "../devicelist/DeviceList";
 import DevicesLocationInformation from "../DevicesLocationInformation/DevicesLocationInformation";
 import Login from "../login/login";
 import PictureAndAICheck from "../PictureAndAICheck/PictureAndAICheck";
 import EquipmentVideoPlayback from "../EquipmentVideoPlayback/EquipmentVideoPlayback";
-import ProvinceManage from "../provinceManage/provinceManage";
-import RealTimeMonitoring from "../realTimeMonitoring/realTimeMonitoring";
 import Settings from "../settings/settings";
 import DeviceImageAndVideoDisplay from "../DeviceImageAndVideoDisplay/DeviceImageAndVideoDisplay";
-import WorkorderManage from "../workorderManage/workorderManage";
 import PersonalInformation from '../PersonalInformation/personalInformation';
 import { useAuth } from '../auth/auth';
-import React, { useState } from "react";
 import DOMPurify from "dompurify";
-import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from '../Sidebar/Sidebar';
 import axios from 'axios';
-import { useEffect } from 'react';
+import { ThemeProvider as AppThemeProvider, useThemeContext } from '../ThemeContext/ThemeContext';
+
+// 创建Material-UI主题
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  typography: {
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+});
+
+
+// 使用styled组件创建自定义样式
+const AppContainer = styled(Box)({
+  display: 'flex',
+  minHeight: '100vh',
+});
+
+const MainContent = styled(Box)(({ theme }) => ({
+  flexGrow: 1,
+  padding: theme.spacing(3),
+  backgroundColor: theme.palette.background.default,
+  minHeight: '100vh',
+}));
+
+const AIChatContainer = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  marginTop: theme.spacing(3),
+  marginBottom: theme.spacing(3),
+}));
+
+const AIResponse = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(2),
+  marginTop: theme.spacing(2),
+  backgroundColor: theme.palette.grey[100],
+}));
+
+
+
 
 //路由保护
 function RouteGuard({ children }) {
@@ -82,60 +145,72 @@ function Home() {
   };
 
   return (
-    <div className="app-container">
+    <AppContainer>
       {/* Sidebar Navigation */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="main-content">
-        <h1 style={{ textAlign: "center" }}>欢迎来到联源电气科技有限公司</h1>
+      <MainContent component="main">
+        <Container maxWidth="lg">
+          <Typography variant="h4" align="center" gutterBottom>
+            欢迎来到联源电气科技有限公司
+          </Typography>
 
-        {/* System Introduction */}
-        <FunctionIntroduction />
+          {/* System Introduction */}
+          <FunctionIntroduction />
 
-        {/* AI Assistant */}
-        <div className="ai-assistant">
-          <h2>联源电气AI小助手</h2>
-          <h4>与电气相关的问题都可以问我哦~</h4>
-          <form onSubmit={handleSubmit} className="ai-form">
-            <div className="ai-input-group">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="输入你的问题..."
-                className="ai-input"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="ai-button"
-              >
-                {loading ? "发送中..." : "发送"}
-              </button>
-            </div>
-          </form>
+          {/* AI Assistant */}
+          <AIChatContainer elevation={3}>
+            <Typography variant="h5" gutterBottom>
+              联源电气AI小助手
+            </Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              与电气相关的问题都可以问我哦~
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="输入你的问题..."
+                  disabled={loading}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={loading}
+                  sx={{ minWidth: '100px' }}
+                >
+                  {loading ? "发送中..." : "发送"}
+                </Button>
+              </Box>
+            </Box>
 
-          {response && (
-            <div className="ai-response">
-              <strong className="ai-response-title">AI 回复：</strong>
-              <div
-                style={{ marginTop: "10px" }}
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(response.replace(/#/g, '').replace(/\n/g, '<br>')),
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            {response && (
+              <AIResponse variant="outlined" sx={{ mt: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  AI 回复：
+                </Typography>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(response.replace(/#/g, '').replace(/\n/g, '<br>')),
+                  }}
+                />
+              </AIResponse>
+            )}
+          </AIChatContainer>
+        </Container>
+      </MainContent>
+    </AppContainer>
   );
 }
 
 
-function App() {
-
+function AppContent() {
+  const { theme } = useThemeContext(); // 使用主题上下文
+  
   // 添加用户设置相关的副作用
   useEffect(() => {
     // 页面加载时获取并应用用户设置
@@ -158,42 +233,59 @@ function App() {
     fetchAndApplySettings();
   }, []);
 
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={
-          <RouteGuard>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/devices" element={<DeviceList />} />
-              <Route path="/DevicesLocationInformation" element={<DevicesLocationInformation />} />
-              <Route path="/PictureAndAICheck" element={<PictureAndAICheck />} />
-              <Route path="/equipmentvideoplayback" element={<EquipmentVideoPlayback />} />
-              <Route path="/provinceManage" element={<ProvinceManage />} />
-              <Route path="/realTimeMonitoring" element={<RealTimeMonitoring />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/DeviceImageAndVideoDisplay" element={<DeviceImageAndVideoDisplay />} />
-              <Route path="/workorderManage" element={<WorkorderManage />} />
-              <Route path="/personalInformation" element={<PersonalInformation />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </RouteGuard>
-        } />
-      </Routes>
-    </Router>
+    <MUIThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={
+            <RouteGuard>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/devices" element={<DeviceList />} />
+                <Route path="/DevicesLocationInformation" element={<DevicesLocationInformation />} />
+                <Route path="/PictureAndAICheck" element={<PictureAndAICheck />} />
+                <Route path="/equipmentvideoplayback" element={<EquipmentVideoPlayback />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/DeviceImageAndVideoDisplay" element={<DeviceImageAndVideoDisplay />} />
+                <Route path="/personalInformation" element={<PersonalInformation />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </RouteGuard>
+          } />
+        </Routes>
+      </Router>
+    </MUIThemeProvider>
   );
 }
 
 function FunctionIntroduction() {
   return (
-    <div className="introduction">
-      <h2>系统介绍</h2>
-      <p>本系统是一个综合的监控和管理平台，旨在提供设备管理、报警处理、线路监控等功能。</p>
-      <p>用户可以通过注册和登录功能访问系统，管理员可以添加、编辑和删除设备信息。</p>
-      <p>系统还提供实时监控、报警分析和工单管理等功能，帮助用户高效地管理设备和处理问题。</p>
-    </div>
+    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+      <Typography variant="h5" gutterBottom>
+        系统介绍
+      </Typography>
+      <Typography variant="body1" paragraph>
+        本系统是一个综合的监控和管理平台，旨在提供设备管理、报警处理、线路监控等功能。
+      </Typography>
+      <Typography variant="body1" paragraph>
+        用户可以通过注册和登录功能访问系统，管理员可以添加、编辑和删除设备信息。
+      </Typography>
+      <Typography variant="body1" paragraph>
+        系统还提供实时监控、报警分析和工单管理等功能，帮助用户高效地管理设备和处理问题。
+      </Typography>
+    </Paper>
   );
 }
 
-export default App; 
+function App() {
+  return (
+    <AppThemeProvider> {/* 包装整个应用 */}
+      <AppContent />
+    </AppThemeProvider>
+  );
+}
+
+export default App;

@@ -1,7 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import '../css/all.css';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  CircularProgress,
+  Grid,
+  styled,
+  Divider
+} from '@mui/material';
 import Sidebar from '../Sidebar/Sidebar';
 
 // 设备类型选项
@@ -56,6 +82,23 @@ const initialDeviceState = {
   install_time: new Date().toISOString().slice(0, 16)
 };
 
+// 使用styled组件创建自定义样式
+const MainContent = styled(Box)(({ theme }) => ({
+  marginLeft: 20,
+  padding: theme.spacing(3),
+  minHeight: '100vh',
+  backgroundColor: theme.palette.background.default,
+  width: 'calc(70% - 60px)', 
+  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+  borderRadius: '12px',
+  margin: theme.spacing(2),
+}));
+
+const FormContainer = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(3),
+}));
+
 // ========== 封装的 API 方法 ========== //
 const fetchDeviceList = async (setDevices, setError, setLoading, userId) => {
   try {
@@ -85,7 +128,7 @@ const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
     });
 
     setSuccess("设备添加成功");
-    setTimeout(() => setSuccess(""), 1000);
+    setTimeout(() => setSuccess(""), 3000);
 
     fetchDevices();
     return initialDeviceState;
@@ -106,7 +149,7 @@ const updateDevice = async (deviceId, deviceData, setSuccess, setError, fetchDev
       user_id: undefined
     });
     setSuccess("设备更新成功");
-    setTimeout(() => setSuccess(""), 1000);
+    setTimeout(() => setSuccess(""), 3000);
     fetchDevices();
   } catch (err) {
     setError("更新失败: " + (err.response?.data?.error || err.message));
@@ -126,6 +169,8 @@ const DeviceList = () => {
   // 存储省份列表和选中省份对应的城市列表
   const [provinces] = useState(Object.keys(chinaRegions));
   const [cities, setCities] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState(null);
 
   // 从 token 获取当前用户 ID
   const getCurrentUserId = () => {
@@ -201,11 +246,22 @@ const DeviceList = () => {
     try {
       await axios.delete(`http://116.62.54.160:5000/api/devices/${device_id}`);
       setSuccess("设备删除成功");
-      setTimeout(() => setSuccess(""), 1000);
+      setTimeout(() => setSuccess(""), 3000);
       setDevices(devices.filter(device => device.device_id !== device_id));
+      setDeleteDialogOpen(false);
     } catch (err) {
       setError("删除失败: " + (err.response?.data?.error || err.message));
     }
+  };
+
+  const openDeleteDialog = (device) => {
+    setDeviceToDelete(device);
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeviceToDelete(null);
   };
 
   if (!currentUserId) {
@@ -213,227 +269,303 @@ const DeviceList = () => {
   }
 
   return (
-    <div className="app-container">
+    <Box sx={{ display: 'flex' }}>
       <Sidebar />
-      <div className="main-content">
-        <h1>设备管理</h1>
+      <MainContent component="main">
+        <Typography variant="h4" gutterBottom>
+          设备管理
+        </Typography>
+
+        {/* 显示成功/错误消息 */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        )}
 
         {/* 添加设备表单 */}
-        <div className="device-form">
-          <h2>{editingDevice ? "编辑设备" : "添加新设备"}</h2>
-          <form onSubmit={editingDevice ? saveEdit : addDevice}>
-            {/* 设备名称改为下拉框 */}
-            <div className="form-group">
-              <label className="form-label">设备类型: </label>
-              <select
-                name="device_name"
-                value={editingDevice ? editingDevice.device_name || "" : newDevice.device_name || ""}
-                onChange={(e) => editingDevice
-                  ? setEditingDevice({ ...editingDevice, device_name: e.target.value })
-                  : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
-                }
-                className="form-select"
-              >
-                <option value="">请选择设备类型</option>
-                {deviceTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 设备代码 - 必填字段 */}
-            <div className="form-group">
-              <label className="form-label">设备代码: <span className="required">*</span></label>
-              <input
-                type="text"
-                name="device_code"
-                value={editingDevice ? editingDevice.device_code || "" : newDevice.device_code || ""}
-                onChange={(e) => editingDevice
-                  ? setEditingDevice({ ...editingDevice, device_code: e.target.value })
-                  : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
-                }
-                className="form-input"
-                required
-              />
-            </div>
-
-            {/* 省份和城市下拉框 */}
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">省份: </label>
-                <select
-                  name="province"
-                  value={editingDevice ? editingDevice.province || "" : newDevice.province || ""}
-                  onChange={(e) => {
-                    const selectedProvince = e.target.value;
-                    if (editingDevice) {
-                      setEditingDevice({
-                        ...editingDevice,
-                        province: selectedProvince,
-                        city: "" // 重置城市选择
-                      });
-                    } else {
-                      setNewDevice({
-                        ...newDevice,
-                        province: selectedProvince,
-                        city: "" // 重置城市选择
-                      });
+        <FormContainer elevation={3}>
+          <Typography variant="h5" gutterBottom>
+            {editingDevice ? "编辑设备" : "添加新设备"}
+          </Typography>
+          <Box component="form" onSubmit={editingDevice ? saveEdit : addDevice}>
+            {/* 设备类型和设备代码在同一行 */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth sx={{ minWidth: 200 }}>
+                  <InputLabel>设备类型</InputLabel>
+                  <Select
+                    value={editingDevice ? editingDevice.device_name || "" : newDevice.device_name || ""}
+                    onChange={(e) => editingDevice
+                      ? setEditingDevice({ ...editingDevice, device_name: e.target.value })
+                      : setNewDevice({ ...newDevice, device_name: e.target.value })
                     }
-                  }}
-                  className="form-select"
-                >
-                  <option value="">请选择省份</option>
-                  {provinces.map(province => (
-                    <option key={province} value={province}>
-                      {province}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                    label="设备类型"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          minWidth: 250 // 下拉菜单的最小宽度
+                        }
+                      }
+                    }}
+                  >
+                    <MenuItem value="">请选择设备类型</MenuItem>
+                    {deviceTypes.map(type => (
+                      <MenuItem key={type.value} value={type.value}>
+                        {type.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
 
-              <div className="form-group">
-                <label className="form-label">城市: </label>
-                <select
-                  name="city"
-                  value={editingDevice ? editingDevice.city || "" : newDevice.city || ""}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="设备代码"
+                  value={editingDevice ? editingDevice.device_code || "" : newDevice.device_code || ""}
                   onChange={(e) => editingDevice
-                    ? setEditingDevice({ ...editingDevice, city: e.target.value })
-                    : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                    ? setEditingDevice({ ...editingDevice, device_code: e.target.value })
+                    : setNewDevice({ ...newDevice, device_code: e.target.value })
                   }
-                  className="form-select"
-                  disabled={!cities.length}
-                >
-                  <option value="">请选择城市</option>
-                  {cities.map(city => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* 详细位置 */}
-            <div className="form-group">
-              <label className="form-label">详细位置: </label>
-              <input
-                type="text"
-                name="location"
-                value={editingDevice ? editingDevice.location || "" : newDevice.location || ""}
-                onChange={(e) => editingDevice
-                  ? setEditingDevice({ ...editingDevice, location: e.target.value })
-                  : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
-                }
-                className="form-input"
-              />
-            </div>
-
-            {/* 用户ID和安装时间 */}
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">用户ID: </label>
-                <input
-                  type="text"
-                  name="user_id"
-                  value={currentUserId || ""}
-                  readOnly
-                  className="form-input disabled-input"
+                  required
                 />
-              </div>
+              </Grid>
+            </Grid>
 
-              <div className="form-group">
-                <label className="form-label">安装时间: </label>
-                <input
+            {/* 省份和城市在同一行 */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth sx={{ minWidth: 200 }}>
+                  <InputLabel>省份</InputLabel>
+                  <Select
+                    value={editingDevice ? editingDevice.province || "" : newDevice.province || ""}
+                    onChange={(e) => {
+                      const selectedProvince = e.target.value;
+                      if (editingDevice) {
+                        setEditingDevice({
+                          ...editingDevice,
+                          province: selectedProvince,
+                          city: "" // 重置城市选择
+                        });
+                      } else {
+                        setNewDevice({
+                          ...newDevice,
+                          province: selectedProvince,
+                          city: "" // 重置城市选择
+                        });
+                      }
+                    }}
+                    label="省份"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          minWidth: 250 // 下拉菜单的最小宽度
+                        }
+                      }
+                    }}
+                  >
+                    <MenuItem value="">请选择省份</MenuItem>
+                    {provinces.map(province => (
+                      <MenuItem key={province} value={province}>
+                        {province}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth sx={{ minWidth: 200 }}>
+                  <InputLabel>城市</InputLabel>
+                  <Select
+                    value={editingDevice ? editingDevice.city || "" : newDevice.city || ""}
+                    onChange={(e) => editingDevice
+                      ? setEditingDevice({ ...editingDevice, city: e.target.value })
+                      : setNewDevice({ ...newDevice, city: e.target.value })
+                    }
+                    label="城市"
+                    disabled={!cities.length}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          minWidth: 250 // 下拉菜单的最小宽度
+                        }
+                      }
+                    }}
+                  >
+                    <MenuItem value="">请选择城市</MenuItem>
+                    {cities.map(city => (
+                      <MenuItem key={city} value={city}>
+                        {city}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* 详细位置单独一行 */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="详细位置"
+                  value={editingDevice ? editingDevice.location || "" : newDevice.location || ""}
+                  onChange={(e) => editingDevice
+                    ? setEditingDevice({ ...editingDevice, location: e.target.value })
+                    : setNewDevice({ ...newDevice, location: e.target.value })
+                  }
+                />
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* 用户ID和安装时间在同一行 */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="用户ID"
+                  value={currentUserId || ""}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="安装时间"
                   type="datetime-local"
-                  name="install_time"
                   value={editingDevice ? editingDevice.install_time || "" : newDevice.install_time || ""}
                   onChange={(e) => editingDevice
                     ? setEditingDevice({ ...editingDevice, install_time: e.target.value })
-                    : setNewDevice({ ...newDevice, [e.target.name]: e.target.value })
+                    : setNewDevice({ ...newDevice, install_time: e.target.value })
                   }
-                  className="form-input"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
                 />
-              </div>
-            </div>
+              </Grid>
+            </Grid>
 
-            <div className="form-actions">
-              <button type="submit" className="submit-button">
+            <Divider sx={{ my: 2 }} />
+
+            {/* 操作按钮 */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button type="submit" variant="contained" size="large">
                 {editingDevice ? "保存修改" : "添加设备"}
-              </button>
+              </Button>
               {editingDevice && (
-                <button
-                  type="button"
-                  className="cancel-button"
+                <Button
+                  variant="outlined"
+                  size="large"
                   onClick={() => setEditingDevice(null)}
                 >
                   取消
-                </button>
+                </Button>
               )}
-            </div>
-          </form>
-
-          {error && <p className="error-message">{error}</p>}
-          {success && <p className="success-message">{success}</p>}
-        </div>
+            </Box>
+          </Box>
+        </FormContainer>
 
         {/* 设备列表展示 */}
         {loading ? (
-          <p>加载中...</p>
+          <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+            <CircularProgress />
+          </Box>
         ) : devices.length === 0 ? (
-          <p>没有找到设备</p>
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h6">没有找到设备</Typography>
+          </Paper>
         ) : (
-          <div className="device-list">
-            <table className="device-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>名称</th>
-                  <th>设备代码</th>
-                  <th>拉流地址</th>
-                  <th>位置</th>
-                  <th>状态</th>
-                  <th>安装时间</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
+          <TableContainer component={Paper} elevation={3}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>名称</TableCell>
+                  <TableCell>设备代码</TableCell>
+                  <TableCell>拉流地址</TableCell>
+                  <TableCell>位置</TableCell>
+                  <TableCell>状态</TableCell>
+                  <TableCell>安装时间</TableCell>
+                  <TableCell>操作</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {devices.map(device => (
-                  <tr key={device.device_id}>
-                    <td>{device.device_id}</td>
-                    <td>{device.device_name}</td>
-                    <td>{device.device_code}</td>
-                    <td className="url-cell">{device.pull_url}</td>
-                    <td>{`${device.province}${device.city}${device.location}`}</td>
-                    <td>
-                      <span className={`status-${device.status === 1 ? 'active' : 'inactive'}`}>
-                        {device.status === 1 ? '在线' : '离线'}
-                      </span>
-                    </td>
-                    <td>{new Date(device.install_time).toLocaleString()}</td>
-                    <td className="actions-cell">
-                      <button
+                  <TableRow key={device.device_id}>
+                    <TableCell>{device.device_id}</TableCell>
+                    <TableCell>{device.device_name}</TableCell>
+                    <TableCell>{device.device_code}</TableCell>
+                    <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {device.pull_url}
+                    </TableCell>
+                    <TableCell>{`${device.province || ''}${device.city || ''}${device.location || ''}`}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={device.status === 1 ? '在线' : '离线'}
+                        color={device.status === 1 ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{new Date(device.install_time).toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Button
                         onClick={() => startEdit(device)}
-                        className="edit-button"
+                        color="primary"
+                        size="small"
+                        sx={{ mr: 1 }}
                       >
                         编辑
-                      </button>
-                      <button
-                        onClick={() => handleDelete(device.device_id)}
-                        className="delete-button"
+                      </Button>
+                      <Button
+                        onClick={() => openDeleteDialog(device)}
+                        color="error"
+                        size="small"
                       >
                         删除
-                      </button>
-                    </td>
-                  </tr>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
-      </div>
-    </div>
+
+        {/* 删除确认对话框 */}
+        <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog}>
+          <DialogTitle>确认删除</DialogTitle>
+          <DialogContent>
+            <Typography>
+              确定要删除设备 "{deviceToDelete?.device_name}" (ID: {deviceToDelete?.device_id}) 吗？
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeDeleteDialog}>取消</Button>
+            <Button
+              onClick={() => handleDelete(deviceToDelete?.device_id)}
+              color="error"
+              autoFocus
+            >
+              确认删除
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </MainContent>
+    </Box>
   );
 };
 

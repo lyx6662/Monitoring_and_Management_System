@@ -1,31 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Paper, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem, 
+  Button, 
+  Box,
+  Alert,
+  Snackbar,
+  Divider,
+  ThemeProvider,
+  createTheme,
+  CssBaseline
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 import axios from 'axios';
-import '../css/all.css';
 import Sidebar from '../Sidebar/Sidebar';
 
-const Setting = () => {
-  // 定义预设颜色选项 - 彩虹7色+黑白
-  const colorOptions = [
-    { value: '#ff0000', label: '红色' },
-    { value: '#ffa500', label: '橙色' },
-    { value: '#ffff00', label: '黄色' },
-    { value: '#008000', label: '绿色' },
-    { value: '#0000ff', label: '蓝色' },
-    { value: '#4b0082', label: '靛色' },
-    { value: '#ee82ee', label: '紫色' },
-    { value: '#000000', label: '黑色' },
-    { value: '#ffffff', label: '白色' }
-  ];
+// 自定义样式组件
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  marginTop: theme.spacing(4),
+  borderRadius: '12px',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+  width: '100%',
+  maxWidth: 800
+}));
 
-  // 状态管理
+const WideFormControl = styled(FormControl)(({ theme }) => ({
+  width: '100%',
+  maxWidth: 600,
+  marginBottom: theme.spacing(3)
+}));
+
+const Setting = () => {
   const [settings, setSettings] = useState({
-    background_color: '#f5f7fa',
-    sidebar_color: '#f8f9fa',
-    font_family: 'Arial, sans-serif',
-    video_resolution: '720p',
     theme_mode: 'light'
   });
+  
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  // 创建动态主题
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode: settings.theme_mode,
+      primary: {
+        main: '#1976d2',
+      },
+      secondary: {
+        main: '#dc004e',
+      },
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            transition: 'background-color 0.3s ease',
+          },
+        },
+      },
+    },
+  }), [settings.theme_mode]);
 
   // 加载用户现有设置
   useEffect(() => {
@@ -35,9 +77,15 @@ const Setting = () => {
         const res = await axios.get('http://116.62.54.160:5000/api/user/settings', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setSettings(res.data);
+        // 只保留主题模式设置
+        setSettings({ theme_mode: res.data.theme_mode || 'light' });
       } catch (error) {
         console.error('获取设置失败:', error);
+        setSnackbar({
+          open: true,
+          message: '获取设置失败',
+          severity: 'error'
+        });
       }
     };
     fetchSettings();
@@ -50,107 +98,106 @@ const Setting = () => {
       await axios.put('http://116.62.54.160:5000/api/user/settings', settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('设置已保存！');
-      // 应用新样式
-      applyStyles();
+      
+      setSnackbar({
+        open: true,
+        message: '设置已保存！',
+        severity: 'success'
+      });
     } catch (error) {
       console.error('保存设置失败:', error);
-      alert('保存设置失败，请重试');
+      setSnackbar({
+        open: true,
+        message: '保存设置失败，请重试',
+        severity: 'error'
+      });
     }
   };
 
-  // 动态应用样式到页面
-  const applyStyles = () => {
-    document.documentElement.style.setProperty('--bg-color', settings.background_color);
-    document.documentElement.style.setProperty('--sidebar-color', settings.sidebar_color);
-    document.documentElement.style.setProperty('--font-family', settings.font_family);
-    // 主题模式（如深色模式）
-    document.body.className = settings.theme_mode;
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleThemeModeChange = (mode) => {
+    setSettings({ ...settings, theme_mode: mode });
   };
 
   return (
-    <div className="app-container">
-      <Sidebar />
-      <div className="main-content">
-        <h1>个性化设置</h1>
-        <div className="device-form">
-          {/* 背景颜色设置 - 使用下拉框选择预设颜色 */}
-          <div className="form-group">
-            <label className="form-label">界面背景色</label>
-            <select
-              value={settings.background_color}
-              onChange={(e) => setSettings({...settings, background_color: e.target.value})}
-              className="form-select color-select"
-            >
-              {colorOptions.map(option => (
-                <option 
-                  key={option.value} 
-                  value={option.value}
-                  style={{ '--color': option.value }} // 使用CSS变量传递颜色值
-                  className="color-option"
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        <Sidebar />
+        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
+          <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ width: '100%' }}>
+              <Typography variant="h4" component="h1" gutterBottom sx={{ 
+                mt: 2, 
+                mb: 4,
+                fontWeight: 600,
+                color: 'primary.main'
+              }}>
+                个性化设置
+              </Typography>
+              
+              <StyledPaper>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 500, mb: 2 }}>
+                    界面样式设置
+                  </Typography>
+                  <Divider sx={{ mb: 3 }} />
+                  
+                  {/* 主题模式设置 */}
+                  <WideFormControl>
+                    <InputLabel>主题模式</InputLabel>
+                    <Select
+                      value={settings.theme_mode}
+                      label="主题模式"
+                      onChange={(e) => handleThemeModeChange(e.target.value)}
+                    >
+                      <MenuItem value="light">浅色模式</MenuItem>
+                      <MenuItem value="dark">深色模式</MenuItem>
+                    </Select>
+                  </WideFormControl>
+                </Box>
 
-          {/* 导航栏颜色设置 - 使用下拉框选择预设颜色 */}
-          <div className="form-group">
-            <label className="form-label">导航栏背景色</label>
-            <select
-              value={settings.sidebar_color}
-              onChange={(e) => setSettings({...settings, sidebar_color: e.target.value})}
-              className="form-select color-select"
-            >
-              {colorOptions.map(option => (
-                <option 
-                  key={option.value} 
-                  value={option.value}
-                  style={{ '--color': option.value }} // 使用CSS变量传递颜色值
-                  className="color-option"
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+                {/* 保存按钮 */}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+                  <Button 
+                    variant="contained" 
+                    onClick={handleSave}
+                    size="large"
+                    sx={{ 
+                      px: 4, 
+                      py: 1,
+                      fontSize: '1.1rem',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    保存设置
+                  </Button>
+                </Box>
+              </StyledPaper>
+            </Box>
+          </Container>
 
-          {/* 字体设置 */}
-          <div className="form-group">
-            <label className="form-label">字体</label>
-            <select
-              value={settings.font_family}
-              onChange={(e) => setSettings({...settings, font_family: e.target.value})}
-              className="form-select"
+          {/* 提示消息 */}
+          <Snackbar 
+            open={snackbar.open} 
+            autoHideDuration={4000} 
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              onClose={handleCloseSnackbar} 
+              severity={snackbar.severity}
+              sx={{ width: '100%' }}
             >
-              <option value="Arial, sans-serif">Arial</option>
-              <option value="'Microsoft YaHei', sans-serif">微软雅黑</option>
-              <option value="'SimSun', serif">宋体</option>
-            </select>
-          </div>
-
-          {/* 视频分辨率设置 */}
-          <div className="form-group">
-            <label className="form-label">视频分辨率</label>
-            <select
-              value={settings.video_resolution}
-              onChange={(e) => setSettings({...settings, video_resolution: e.target.value})}
-              className="form-select"
-            >
-              <option value="480p">480p</option>
-              <option value="720p">720p</option>
-              <option value="1080p">1080p</option>
-            </select>
-          </div>
-
-          {/* 保存按钮 */}
-          <button onClick={handleSave} className="submit-button">
-            保存设置
-          </button>
-        </div>
-      </div>
-    </div>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 };
 

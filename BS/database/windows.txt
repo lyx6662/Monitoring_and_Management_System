@@ -163,14 +163,10 @@ INSERT INTO devices (
   '2025-08-12 02:43:00'
 );
 
--- 在文档4的数据库脚本中添加
+-- 简化数据库表结构，只保留主题模式字段
 CREATE TABLE user_settings (
   setting_id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
-  background_color VARCHAR(20) DEFAULT '#f5f7fa', -- 界面背景色（默认值）
-  sidebar_color VARCHAR(20) DEFAULT '#f8f9fa', -- 导航栏背景色
-  font_family VARCHAR(50) DEFAULT 'Arial, sans-serif', -- 字体
-  video_resolution VARCHAR(20) DEFAULT '720p', -- 视频分辨率
   theme_mode ENUM('light', 'dark') DEFAULT 'light', -- 主题模式
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -220,7 +216,7 @@ INSERT INTO devices (
   '云台',
   '865522078460315',
   'null1',
-  'https://play.zhijingwuxian.com/zhijing/865522078460315_13zhen.m3u8?auth_key=1755756125-0-0-d515c887b3d7a52c922cb28b061fc6a4',
+  '测试',
   'guangdong',
   'shenzhen',
   '1hao',

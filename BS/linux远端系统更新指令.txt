@@ -1,0 +1,30 @@
+
+//更新系统版本
+
+cd Monitoring_and_Management_System
+
+cd BS
+
+git pull
+
+cd API
+
+pm2 delete all
+
+pm2 start server.js
+
+
+
+cd ..
+
+cd frontend
+
+pm2 start npm -- start
+
+
+//更新数据库
+
+
+mysql -u root -p
+
+Wadwad2020a

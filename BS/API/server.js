@@ -864,379 +864,6 @@ app.get('/api/oss/files', async (req, res) => {
 
 
 
-// 修改后的ai视觉检查接口，支持批量处理并移动文件
-// app.post('/api/ai-vision-check', async (req, res) => {
-//   try {
-//     const { imageUrls } = req.body; // 改为接收图片URL数组
-
-//     if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
-//       return res.status(400).json({ error: '缺少图片URL或URL格式不正确' });
-//     }
-
-//     // 批量调用AI模型
-//     const results = await Promise.all(imageUrls.map(async (imageUrl) => {
-//       try {
-//         // 调用火山引擎的视觉模型
-//         const response = await axios.post(
-//           'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-//           {
-//             model: "doubao-1-5-thinking-vision-pro-250428", // 视觉模型
-//             messages: [
-//               {
-//                 "content": [
-//                   {
-//                     "image_url": {
-//                       "url": imageUrl
-//                     },
-//                     "type": "image_url"
-//                   },
-//                   {
-//                     "text": "这张图片是否判断正确？请只回答'是'或'否'。",
-//                     "type": "text"
-//                   }
-//                 ],
-//                 "role": "user"
-//               }
-//             ]
-//           },
-//           {
-//             headers: {
-//               'Authorization': `Bearer ${process.env.AI_API_KEY}`,
-//               'Content-Type': 'application/json'
-//             }
-//           }
-//         );
-
-//         const aiResponse = response.data.choices?.[0]?.message?.content || "";
-
-//         // 提取回答，并转换为布尔值
-//         const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
-
-//         // 从图片URL中提取文件名（check目录下的文件名）
-//         const urlParts = imageUrl.split('/');
-//         const originalFileName = `check/${urlParts[urlParts.length - 1]}`;
-
-//         // 确定目标文件夹
-//         const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
-//         const targetFileName = `${targetFolder}${urlParts[urlParts.length - 1]}`;
-
-//         try {
-//           // 复制文件到新位置
-//           await ossClient.copy(targetFileName, originalFileName);
-
-//           // 删除原文件
-//           await ossClient.delete(originalFileName);
-
-//           console.log(`[移动文件] 从 ${originalFileName} 移动到 ${targetFileName}`);
-
-//           return { 
-//             imageUrl, 
-//             isAlarmValid,
-//             newUrl: `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`
-//           };
-//         } catch (moveError) {
-//           console.error('移动文件失败:', moveError);
-//           return { 
-//             imageUrl, 
-//             isAlarmValid,
-//             error: '移动文件失败'
-//           };
-//         }
-//       } catch (error) {
-//         console.error(`处理图片 ${imageUrl} 时出错:`, error);
-//         return { 
-//           imageUrl, 
-//           isAlarmValid: false,
-//           error: error.message 
-//         };
-//       }
-//     }));
-
-//     res.json({ results });
-
-//   } catch (error) {
-//     console.error('批量AI图像识别失败:', error);
-//     res.status(500).json({ 
-//       error: '批量AI图像识别失败',
-//       details: error.message
-//     });
-//   }
-// });
-
-
-// // 修改后的AI视觉检查接口（支持OSS文件复制和外部图片URL保存）
-// app.post('/api/ai-vision-check', async (req, res) => {
-//   try {
-//     const { imageUrls } = req.body;
-
-//     if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
-//       return res.status(400).json({ error: '缺少图片URL或URL格式不正确' });
-//     }
-
-//     // 辅助函数：判断是否为OSS上的图片
-//     const isOssImage = (url) => {
-//       return url.includes(`${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com`);
-//     };
-
-//     // 辅助函数：下载远程图片并返回Buffer
-//     const downloadImage = async (url) => {
-//       try {
-//         const response = await axios.get(url, { responseType: 'arraybuffer' });
-//         return Buffer.from(response.data, 'binary');
-//       } catch (error) {
-//         console.error(`下载图片 ${url} 失败:`, error);
-//         throw new Error(`下载图片失败: ${error.message}`);
-//       }
-//     };
-
-//     const results = await Promise.all(imageUrls.map(async (imageUrl) => {
-//       try {
-//         // 调用火山引擎视觉模型（保持不变）
-//         const response = await axios.post(
-//           'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-//           {
-//             model: "doubao-1-5-thinking-vision-pro-250428",
-//             messages: [
-//               {
-//                 "content": [
-//                   {
-//                     "image_url": { "url": imageUrl },
-//                     "type": "image_url"
-//                   },
-//                   {
-//                     "text": "请认真观察照片,这是摄像头拍摄识别的照片,框内为摄像头的判断内容,这张图片是否判断正确？请只回答'是'或'否'。",
-//                     "type": "text"
-//                   }
-//                 ],
-//                 "role": "user"
-//               }
-//             ]
-//           },
-//           {
-//             headers: {
-//               'Authorization': `Bearer ${process.env.AI_API_KEY}`,
-//               'Content-Type': 'application/json'
-//             }
-//           }
-//         );
-
-//         const aiResponse = response.data.choices?.[0]?.message?.content || "";
-//         const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
-//         const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
-//         console.log(`处理图片 ${imageUrl}，判断结果: ${isAlarmValid ? '正确' : '错误'}`);
-
-//         // 提取文件名（从URL中获取）
-//         const urlParts = imageUrl.split('/');
-//         let fileName = urlParts[urlParts.length - 1];
-
-//         // 处理可能的URL参数
-//         fileName = fileName.split('?')[0];
-
-//         const targetFileName = `${targetFolder}${fileName}`;
-//         let newUrl;
-
-//         try {
-//           if (isOssImage(imageUrl)) {
-//             // 如果是OSS上的图片，直接复制
-//             const originalFileName = `check/${fileName}`;
-//             await ossClient.copy(targetFileName, originalFileName);
-//             console.log(`[复制文件] 从 ${originalFileName} 复制到 ${targetFileName}`);
-//           } else {
-//             // 如果是外部图片，下载后上传到OSS
-//             const imageBuffer = await downloadImage(imageUrl);
-
-//             // 提取文件扩展名，设置正确的MIME类型
-//             const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
-//             const contentType = ext === 'png' ? 'image/png' : 
-//                                ext === 'gif' ? 'image/gif' : 
-//                                'image/jpeg';
-
-//             await ossClient.put(targetFileName, imageBuffer, {
-//               headers: {
-//                 'Content-Type': contentType
-//               }
-//             });
-//             console.log(`[上传文件] 从 ${imageUrl} 上传到 ${targetFileName}`);
-//           }
-
-//           // 生成新的图片URL
-//           newUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`;
-
-//           return { 
-//             imageUrl, 
-//             isAlarmValid,
-//             newUrl,
-//             status: 'success'
-//           };
-//         } catch (fileError) {
-//           console.error('文件处理失败:', fileError);
-//           return { 
-//             imageUrl, 
-//             isAlarmValid,
-//             error: '文件处理失败',
-//             details: fileError.message
-//           };
-//         }
-//       } catch (error) {
-//         console.error(`处理图片 ${imageUrl} 时出错:`, error);
-//         return { 
-//           imageUrl, 
-//           isAlarmValid: false,
-//           error: error.message 
-//         };
-//       }
-//     }));
-
-//     res.json({ results });
-
-//   } catch (error) {
-//     console.error('批量AI图像识别失败:', error);
-//     res.status(500).json({ 
-//       error: '批量AI图像识别失败',
-//       details: error.message
-//     });
-//   }
-// });
-
-
-// // 修改后的AI视觉检查接口（支持打印AI判断结果）
-// app.post('/api/ai-vision-check', async (req, res) => {
-//   try {
-//     const { imageUrls } = req.body;
-
-//     if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
-//       return res.status(400).json({ error: '缺少图片URL或URL格式不正确' });
-//     }
-
-//     // 辅助函数：判断是否为OSS上的图片
-//     const isOssImage = (url) => {
-//       return url.includes(`${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com`);
-//     };
-
-//     // 辅助函数：下载远程图片并返回Buffer
-//     const downloadImage = async (url) => {
-//       try {
-//         const response = await axios.get(url, { responseType: 'arraybuffer' });
-//         return Buffer.from(response.data, 'binary');
-//       } catch (error) {
-//         console.error(`下载图片 ${url} 失败:`, error);
-//         throw new Error(`下载图片失败: ${error.message}`);
-//       }
-//     };
-
-//     const results = await Promise.all(imageUrls.map(async (imageUrl) => {
-//       try {
-//         // 调用火山引擎视觉模型
-//         const response = await axios.post(
-//           'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-//           {
-//             model: "doubao-1-5-thinking-vision-pro-250428",
-//             messages: [
-//               {
-//                 "content": [
-//                   {
-//                     "image_url": { "url": imageUrl },
-//                     "type": "image_url"
-//                   },
-//                   {
-//                     "text": "请认真观察照片,这是摄像头拍摄识别的照片,框内为摄像头的判断内容,根据框框左上角的文字信息,这张图片是否判断正确？",
-//                     "type": "text"
-//                   }
-//                 ],
-//                 "role": "user"
-//               }
-//             ]
-//           },
-//           {
-//             headers: {
-//               'Authorization': `Bearer ${process.env.AI_API_KEY}`,
-//               'Content-Type': 'application/json'
-//             }
-//           }
-//         );
-
-//         const aiResponse = response.data.choices?.[0]?.message?.content || "";
-//         // 打印AI的原始判断结果
-//         console.log(`[AI判断结果] 图片URL: ${imageUrl}，判断结果: ${aiResponse}`);
-
-//         const isAlarmValid = aiResponse.trim().toLowerCase() === "是";
-//         const targetFolder = isAlarmValid ? 'check_1/' : 'check_2/';
-
-//         // 提取文件名（从URL中获取）
-//         const urlParts = imageUrl.split('/');
-//         let fileName = urlParts[urlParts.length - 1];
-
-//         // 处理可能的URL参数
-//         fileName = fileName.split('?')[0];
-
-//         const targetFileName = `${targetFolder}${fileName}`;
-//         let newUrl;
-
-//         try {
-//           if (isOssImage(imageUrl)) {
-//             // 如果是OSS上的图片，直接复制
-//             const originalFileName = `check/${fileName}`;
-//             await ossClient.copy(targetFileName, originalFileName);
-//             console.log(`[复制文件] 从 ${originalFileName} 复制到 ${targetFileName}`);
-//           } else {
-//             // 如果是外部图片，下载后上传到OSS
-//             const imageBuffer = await downloadImage(imageUrl);
-
-//             // 提取文件扩展名，设置正确的MIME类型
-//             const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
-//             const contentType = ext === 'png' ? 'image/png' : 
-//                                ext === 'gif' ? 'image/gif' : 
-//                                'image/jpeg';
-
-//             await ossClient.put(targetFileName, imageBuffer, {
-//               headers: {
-//                 'Content-Type': contentType
-//               }
-//             });
-//             console.log(`[上传文件] 从 ${imageUrl} 上传到 ${targetFileName}`);
-//           }
-
-//           // 生成新的图片URL
-//           newUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com/${targetFileName}`;
-
-//           return { 
-//             imageUrl, 
-//             isAlarmValid,
-//             aiResponse,  // 同时将AI结果返回给前端
-//             newUrl,
-//             status: 'success'
-//           };
-//         } catch (fileError) {
-//           console.error('文件处理失败:', fileError);
-//           return { 
-//             imageUrl, 
-//             isAlarmValid,
-//             aiResponse,  // 即使文件处理失败也返回AI结果
-//             error: '文件处理失败',
-//             details: fileError.message
-//           };
-//         }
-//       } catch (error) {
-//         console.error(`处理图片 ${imageUrl} 时出错:`, error);
-//         return { 
-//           imageUrl, 
-//           isAlarmValid: false,
-//           error: error.message 
-//         };
-//       }
-//     }));
-
-//     res.json({ results });
-
-//   } catch (error) {
-//     console.error('批量AI图像识别失败:', error);
-//     res.status(500).json({ 
-//       error: '批量AI图像识别失败',
-//       details: error.message
-//     });
-//   }
-// });
-
 // 修改后的AI视觉检查接口（支持引发原因验证）
 app.post('/api/ai-vision-check', async (req, res) => {
   try {
@@ -1546,17 +1173,13 @@ app.get('/api/user/settings', async (req, res) => {
 
     // 查找用户设置，若无则返回默认值
     const [settings] = await pool.query(
-      'SELECT * FROM user_settings WHERE user_id = ?',
+      'SELECT theme_mode FROM user_settings WHERE user_id = ?',
       [userId]
     );
 
     if (settings.length === 0) {
-      // 返回默认设置（与数据库默认值一致）
+      // 返回默认设置
       return res.json({
-        background_color: '#f5f7fa',
-        sidebar_color: '#f8f9fa',
-        font_family: 'Arial, sans-serif',
-        video_resolution: '720p',
         theme_mode: 'light'
       });
     }
@@ -1576,7 +1199,7 @@ app.put('/api/user/settings', async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
     const userId = decoded.userId;
-    const { background_color, sidebar_color, font_family, video_resolution, theme_mode } = req.body;
+    const { theme_mode } = req.body;
 
     // 检查是否已有设置，有则更新，无则插入
     const [existing] = await pool.query(
@@ -1588,22 +1211,18 @@ app.put('/api/user/settings', async (req, res) => {
       // 更新现有设置
       await pool.query(
         `UPDATE user_settings SET 
-         background_color = ?, 
-         sidebar_color = ?, 
-         font_family = ?, 
-         video_resolution = ?, 
          theme_mode = ?,
          updated_at = CURRENT_TIMESTAMP
          WHERE user_id = ?`,
-        [background_color, sidebar_color, font_family, video_resolution, theme_mode, userId]
+        [theme_mode, userId]
       );
     } else {
       // 插入新设置
       await pool.query(
         `INSERT INTO user_settings 
-         (user_id, background_color, sidebar_color, font_family, video_resolution, theme_mode)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, background_color, sidebar_color, font_family, video_resolution, theme_mode]
+         (user_id, theme_mode)
+         VALUES (?, ?)`,
+        [userId, theme_mode]
       );
     }
 

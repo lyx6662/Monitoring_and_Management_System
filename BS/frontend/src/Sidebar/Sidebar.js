@@ -1,13 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import '../css/all.css';
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  Typography,
+  Box,
+  Divider,
+  styled
+} from '@mui/material';
+import {
+  Home as HomeIcon,
+  Devices as DevicesIcon,
+  Videocam as VideocamIcon,
+  LocationOn as LocationIcon,
+  Image as ImageIcon,
+  Person as PersonIcon,
+  Settings as SettingsIcon,
+  ExpandLess,
+  ExpandMore
+} from '@mui/icons-material';
 
 const routeTitles = {
   '/': '联源电气智能监控系统',
   '/devices': '设备列表',
   '/equipmentvideoplayback': '设备视频播放',
   '/DevicesLocationInformation': '设备位置信息展示',
-  '/PictureAndAICheck': '照片存储和ai复查',
+  '/PictureAndAICheck': '照片存储和AI复查',
   '/provinceManage': '省份管理',
   '/realTimeMonitoring': '实时监控',
   '/settings': '设置',
@@ -15,6 +38,20 @@ const routeTitles = {
   '/workorderManage': '工单管理',
   '/personalInformation': '个人信息编辑',
 };
+
+// 自定义样式的NavLink
+const StyledNavLink = styled(NavLink)(({ theme }) => ({
+  textDecoration: 'none',
+  color: 'inherit',
+  width: '100%',
+  '&.active': {
+    backgroundColor: theme.palette.action.selected,
+    borderRight: `3px solid ${theme.palette.primary.main}`,
+  },
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
 
 const Sidebar = () => {
   const location = useLocation();
@@ -39,156 +76,151 @@ const Sidebar = () => {
   }, [location.pathname]);
 
   // 处理设备菜单展开/收起
-  const handleDevicesMenuToggle = (e) => {
-    // 如果点击的是NavLink本身（想要导航），则不处理展开/收起
-    if (e.target.tagName !== 'A' || !e.target.classList.contains('nav-link-main')) {
-      setIsDevicesMenuOpen(!isDevicesMenuOpen);
-    }
-  };
-
-  // 判断当前路径是否匹配NavLink的to属性
-  const isActiveRoute = (path) => {
-    return location.pathname === path;
-  };
-
-  // 判断是否为设备相关的父菜单
-  const isDevicesParentActive = () => {
-    const devicesPaths = ['/devices', '/equipmentvideoplayback', '/DevicesLocationInformation'];
-    return devicesPaths.some(path => location.pathname.startsWith(path));
+  const handleDevicesMenuToggle = () => {
+    setIsDevicesMenuOpen(!isDevicesMenuOpen);
   };
 
   return (
-    <div className="sidebar">
-      <h2>这是目录</h2>
-      <nav>
-        <ul className="nav-menu">
-          {/* 主页 - 单独项目 */}
-          <li className="nav-item">
-            <NavLink
-              to="/"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              end
-            >
-              主页
-            </NavLink>
-          </li>
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: 240,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: 240,
+          boxSizing: 'border-box',
+          backgroundColor: (theme) => theme.palette.background.paper,
+        },
+      }}
+    >
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          联源电气智能监控系统
+        </Typography>
+      </Box>
+      
+      <Divider />
+      
+      <List sx={{ p: 0 }}>
+        {/* 主页 - 单独项目 */}
+        <ListItem disablePadding>
+          <StyledNavLink to="/" end>
+            <ListItemButton>
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <ListItemText primary="主页" />
+            </ListItemButton>
+          </StyledNavLink>
+        </ListItem>
 
-          {/* 设备列表（父菜单） */}
-          <li className="nav-item">
-            <div className="nav-parent" onClick={handleDevicesMenuToggle}>
-              {/* 主要的导航链接 - 点击导航到/devices */}
-              <NavLink
-                to="/devices"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              >
-                设备列表
-                <span
-                  className="toggle-icon"
-                  style={{
-                    cursor: 'pointer',
-                    marginLeft: '10px',
-                    fontSize: '12px',
-                    transition: 'transform 0.3s ease',
-                    userSelect: 'none'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation(); // 阻止事件冒泡
-                    setIsDevicesMenuOpen(!isDevicesMenuOpen);
-                  }}
-                >
-                  {isDevicesMenuOpen ? '▼' : '▶'}
-                </span>
-              </NavLink>
+        {/* 设备列表（父菜单） */}
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleDevicesMenuToggle}>
+            <ListItemIcon>
+              <DevicesIcon />
+            </ListItemIcon>
+            <ListItemText primary="设备管理" />
+            {isDevicesMenuOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+
+        {/* 设备子菜单 */}
+        <Collapse in={isDevicesMenuOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {/* 设备列表 */}
+            <ListItem disablePadding sx={{ pl: 3 }}>
+              <StyledNavLink to="/devices">
+                <ListItemButton>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <DevicesIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="设备列表" />
+                </ListItemButton>
+              </StyledNavLink>
+            </ListItem>
+
+            {/* 设备视频播放 */}
+            <ListItem disablePadding sx={{ pl: 3 }}>
+              <StyledNavLink to="/equipmentvideoplayback">
+                <ListItemButton>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <VideocamIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="设备视频播放" />
+                </ListItemButton>
+              </StyledNavLink>
+            </ListItem>
+
+            {/* 设备图像视频展示 */}
+            <ListItem disablePadding sx={{ pl: 3 }}>
+              <StyledNavLink to="/DeviceImageAndVideoDisplay">
+                <ListItemButton>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <ImageIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="设备图像视频展示" />
+                </ListItemButton>
+              </StyledNavLink>
+            </ListItem>
+
+            {/* 设备位置信息展示 */}
+            <ListItem disablePadding sx={{ pl: 3 }}>
+              <StyledNavLink to="/DevicesLocationInformation">
+                <ListItemButton>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <LocationIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="设备位置信息展示" />
+                </ListItemButton>
+              </StyledNavLink>
+            </ListItem>
+          </List>
+        </Collapse>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* 照片存储以及AI复查 */}
+        <ListItem disablePadding>
+          <StyledNavLink to="/PictureAndAICheck">
+            <ListItemButton>
+              <ListItemIcon>
+                <ImageIcon />
+              </ListItemIcon>
+              <ListItemText primary="照片存储与AI复查" />
+            </ListItemButton>
+          </StyledNavLink>
+        </ListItem>
+
+        {/* 个人信息编辑 */}
+        <ListItem disablePadding>
+          <StyledNavLink to="/personalInformation">
+            <ListItemButton>
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="个人信息编辑" />
+            </ListItemButton>
+          </StyledNavLink>
+        </ListItem>
+
+        {/* 设置 */}
+        <ListItem disablePadding>
+          <StyledNavLink to="/settings">
+            <ListItemButton>
+              <ListItemIcon>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="设置" />
+            </ListItemButton>
+          </StyledNavLink>
+        </ListItem>
+
+        <Divider sx={{ my: 1 }} />
 
 
-            </div>
-
-            {/* 子菜单（设备视频播放 + 设备位置信息） */}
-            {isDevicesMenuOpen && (
-              <ul className="sub-menu">
-                <li className="nav-item">
-                  <NavLink
-                    to="/equipmentvideoplayback"
-                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                  >
-                    设备视频播放
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink
-                    to="/DeviceImageAndVideoDisplay"
-                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                  >
-                    设备图像视频展示
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink
-                    to="/DevicesLocationInformation"
-                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                  >
-                    设备位置信息展示
-                  </NavLink>
-                </li>
-              </ul>
-            )}
-          </li>
-
-          {/* 其他独立菜单项 */}
-
-          <li className="nav-item">
-            <NavLink
-              to="/PictureAndAICheck"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              照片存储以及ai复查
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink
-              to="/personalInformation"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              个人信息编辑
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              设置
-            </NavLink>
-          </li>
-
-          <li className="nav-item">
-            <NavLink
-              to="/workorderManage"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              工单管理
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink
-              to="/provinceManage"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              省份管理
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink
-              to="/realTimeMonitoring"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              实时监控
-            </NavLink>
-          </li>
-
-        </ul>
-      </nav>
-    </div>
+      </List>
+    </Drawer>
   );
 };
 

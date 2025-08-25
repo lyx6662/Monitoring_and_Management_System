@@ -1,23 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import '../css/all.css';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActions,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  CircularProgress,
+  Alert,
+  Snackbar,
+  Pagination,
+  IconButton,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Divider,
+  styled // 添加 styled 导入
+} from '@mui/material';
+import {
+  PlayArrow,
+  Close,
+  CameraAlt,
+  Refresh,
+  Info,
+  Warning,
+  CheckCircle,
+  SelectAll,
+  Visibility
+} from '@mui/icons-material';
 import Sidebar from '../Sidebar/Sidebar';
-import axios from 'axios';
+
+import { useThemeContext } from '../ThemeContext/ThemeContext';
+
+// 添加样式组件
+const MainContent = styled(Box)(({ theme }) => ({
+  marginLeft: 20,
+  padding: theme.spacing(3),
+  minHeight: '100vh',
+  backgroundColor: theme.palette.background.default,
+  width: 'calc(70% - 60px)',
+  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+  borderRadius: '12px',
+  margin: theme.spacing(2),
+}));
+
+
+
 
 const DeviceImageAndVideoDisplay = () => {
+  const { theme } = useThemeContext();
   // 设备相关状态
   const [devices, setDevices] = useState([]);
   const [selectedDeviceCode, setSelectedDeviceCode] = useState('');
   const [deviceImages, setDeviceImages] = useState([]);
   const [deviceImagePage, setDeviceImagePage] = useState(1);
   const [totalDeviceImagePages, setTotalDeviceImagePages] = useState(1);
-  const [deviceImageDate, setDeviceImageDate] = useState(''); // 设备图片日期筛选
+  const [deviceImageDate, setDeviceImageDate] = useState('');
 
   // 设备视频相关状态
   const [deviceVideos, setDeviceVideos] = useState([]);
   const [deviceVideoPage, setDeviceVideoPage] = useState(1);
   const [totalDeviceVideoPages, setTotalDeviceVideoPages] = useState(1);
-  const [deviceVideoDate, setDeviceVideoDate] = useState(''); // 设备视频日期筛选
+  const [deviceVideoDate, setDeviceVideoDate] = useState('');
 
   // 报警图片相关状态
   const [alarmImages, setAlarmImages] = useState([]);
@@ -524,18 +580,22 @@ const DeviceImageAndVideoDisplay = () => {
   };
 
   // 打开媒体预览
-  const openMediaPreview = (url, type) => {
-    setPreviewMedia({ url, type });
-    setIsPreviewOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
+const openMediaPreview = (url, type) => {
+  setPreviewMedia({ url, type });
+  setIsPreviewOpen(true);
+  // 同时禁用html和body的滚动
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+};
 
   // 关闭媒体预览
-  const closeMediaPreview = () => {
-    setIsPreviewOpen(false);
-    setPreviewMedia({ url: '', type: '' });
-    document.body.style.overflow = 'auto';
-  };
+const closeMediaPreview = () => {
+  setIsPreviewOpen(false);
+  setPreviewMedia({ url: '', type: '' });
+  // 同时恢复html和body的滚动
+  document.documentElement.style.overflow = 'auto';
+  document.body.style.overflow = 'auto';
+};
 
   // 组件挂载时加载设备列表
   useEffect(() => {
@@ -566,19 +626,16 @@ const DeviceImageAndVideoDisplay = () => {
 
   // 获取当前页的设备图片 - 修复版本
   const getCurrentPageDeviceImages = () => {
-    // 直接返回从 API 获取的当前页数据，不需要再次切片
     return Array.isArray(deviceImages) ? deviceImages : [];
   };
 
   // 获取当前页的设备视频 - 修复版本
   const getCurrentPageDeviceVideos = () => {
-    // 直接返回从 API 获取的当前页数据，不需要再次切片
     return Array.isArray(deviceVideos) ? deviceVideos : [];
   };
 
   // 获取当前页的报警图片 - 修复版本
   const getCurrentPageAlarmImages = () => {
-    // 直接返回从 API 获取的当前页数据，不需要再次切片
     return Array.isArray(alarmImages) ? alarmImages : [];
   };
 
@@ -587,37 +644,54 @@ const DeviceImageAndVideoDisplay = () => {
     if (aiResults.length === 0) return null;
 
     return (
-      <div className="ai-results-section">
-        <h3>AI检测结果</h3>
-        <div className="results-grid">
+      <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          AI检测结果
+        </Typography>
+        <Grid container spacing={2}>
           {aiResults.map((result, index) => (
-            <div key={index} className={`result-card ${result.status === 'error' ? 'error' : result.isAlarmValid ? 'valid' : 'invalid'}`}>
-              <div className="result-image">
-                <img src={result.imageUrl} alt={`结果-${index}`} />
-              </div>
-              <div className="result-info">
-                <p><strong>引发原因:</strong>
-                  {result.cause.split(',').map(cause => {
-                    const trimmedCause = cause.trim();
-                    return CAUSES_MAPPING[trimmedCause] || `未知(${trimmedCause})`;
-                  }).join('、')}
-                </p>
-                <p><strong>判断结果:</strong>
-                  <span className={result.isAlarmValid ? 'result-valid' : 'result-invalid'}>
-                    {result.isAlarmValid ? '正确' : '错误'}
-                  </span>
-                </p>
-                {result.newUrl && (
-                  <p><strong>存储位置:</strong> {result.isAlarmValid ? 'check_1' : 'check_2'}</p>
-                )}
-                {result.error && (
-                  <p className="result-error"><strong>错误:</strong> {result.error}</p>
-                )}
-              </div>
-            </div>
+            <Grid item xs={12} md={6} key={index}>
+              <Card variant="outlined" sx={{
+                borderColor: result.status === 'error' ? 'error.main' : result.isAlarmValid ? 'success.main' : 'warning.main'
+              }}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={result.imageUrl}
+                  alt={`结果-${index}`}
+                />
+                <CardContent>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>引发原因:</strong> {result.cause.split(',').map(cause => {
+                      const trimmedCause = cause.trim();
+                      return CAUSES_MAPPING[trimmedCause] || `未知(${trimmedCause})`;
+                    }).join('、')}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>判断结果:</strong>
+                    <Chip
+                      label={result.isAlarmValid ? '正确' : '错误'}
+                      size="small"
+                      color={result.isAlarmValid ? 'success' : 'error'}
+                      sx={{ ml: 1 }}
+                    />
+                  </Typography>
+                  {result.newUrl && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      <strong>存储位置:</strong> {result.isAlarmValid ? 'check_1' : 'check_2'}
+                    </Typography>
+                  )}
+                  {result.error && (
+                    <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                      <strong>错误:</strong> {result.error}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
-      </div>
+        </Grid>
+      </Box>
     );
   };
 
@@ -626,62 +700,57 @@ const DeviceImageAndVideoDisplay = () => {
     if (!selectedImageForAlarm) return null;
 
     return (
-      <div className="media-preview-modal" onClick={() => setSelectedImageForAlarm(null)}>
-        <div className="preview-content alarm-modal" onClick={(e) => e.stopPropagation()}>
-          <button className="close-preview" onClick={() => setSelectedImageForAlarm(null)}>×</button>
-
-          <h3 className="status-modal-title">创建报警</h3>
-
-          <div className="alarm-form">
-            <div className="form-group">
-              <label>报警原因:</label>
-              <select
-                multiple // 添加多选属性
-                value={alarmCause.split(',')} // 将字符串转换为数组
-                onChange={(e) => {
-                  const selectedOptions = Array.from(e.target.selectedOptions);
-                  const selectedValues = selectedOptions.map(option => option.value);
-                  setAlarmCause(selectedValues.join(',')); // 将数组转换为逗号分隔的字符串
-                }}
-                className="form-select"
+      <Dialog
+        open={!!selectedImageForAlarm}
+        onClose={() => setSelectedImageForAlarm(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          创建报警
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>报警原因</InputLabel>
+              <Select
+                multiple
+                value={alarmCause.split(',')}
+                onChange={(e) => setAlarmCause(e.target.value.join(','))}
+                label="报警原因"
+                renderValue={(selected) => selected.map(val => CAUSES_MAPPING[val] || val).join(', ')}
               >
                 {Object.entries(CAUSES_MAPPING).map(([key, value]) => (
-                  <option key={key} value={key}>{value}</option>
+                  <MenuItem key={key} value={key}>{value}</MenuItem>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </FormControl>
 
-            <div className="form-group">
-              <label>紧急程度:</label>
-              <select
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>紧急程度</InputLabel>
+              <Select
                 value={alarmLevel}
                 onChange={(e) => setAlarmLevel(e.target.value)}
-                className="form-select"
+                label="紧急程度"
               >
-                <option value="">请选择紧急程度</option>
-                <option value="1">紧急</option>
-                <option value="2">不紧急</option>
-              </select>
-            </div>
-
-            <div className="form-actions">
-              <button
-                onClick={() => handleCreateAlarm(selectedImageForAlarm)}
-                disabled={isCreatingAlarm || !alarmCause || !alarmLevel}
-                className="submit-button"
-              >
-                {isCreatingAlarm ? '创建中...' : '创建报警'}
-              </button>
-              <button
-                onClick={() => setSelectedImageForAlarm(null)}
-                className="cancel-button"
-              >
-                取消
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+                <MenuItem value="">请选择紧急程度</MenuItem>
+                <MenuItem value="1">紧急</MenuItem>
+                <MenuItem value="2">不紧急</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedImageForAlarm(null)}>取消</Button>
+          <Button
+            onClick={() => handleCreateAlarm(selectedImageForAlarm)}
+            disabled={isCreatingAlarm || !alarmCause || !alarmLevel}
+            variant="contained"
+          >
+            {isCreatingAlarm ? '创建中...' : '创建报警'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     );
   };
 
@@ -689,131 +758,135 @@ const DeviceImageAndVideoDisplay = () => {
   const renderDeviceImageSection = () => {
     const currentImages = getCurrentPageDeviceImages();
     return (
-      <div className="files-section">
-        <h2>设备图片</h2>
+      <Box sx={{ mb: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
+        <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <CameraAlt sx={{ mr: 1 }} /> 设备图片
+        </Typography>
 
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div className="device-selector">
-            <select
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>选择设备</InputLabel>
+            <Select
               value={selectedDeviceCode}
               onChange={(e) => setSelectedDeviceCode(e.target.value)}
               disabled={loading || devices.length === 0}
+              label="选择设备"
             >
               {devices.length === 0 ? (
-                <option value="">无可用设备</option>
+                <MenuItem value="">无可用设备</MenuItem>
               ) : (
                 devices.map((device) => (
-                  <option key={device.device_id} value={device.device_code}>
+                  <MenuItem key={device.device_id} value={device.device_code}>
                     {device.device_name} ({device.device_code})
-                  </option>
+                  </MenuItem>
                 ))
               )}
-            </select>
-          </div>
+            </Select>
+          </FormControl>
 
-          {/* 日期选择器 */}
-          <div className="date-selector">
-            <label>选择日期: </label>
-            <input
-              type="date"
-              value={deviceImageDate}
-              onChange={(e) => setDeviceImageDate(e.target.value)}
-              style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
+          <TextField
+            label="选择日期"
+            type="date"
+            value={deviceImageDate}
+            onChange={(e) => setDeviceImageDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: 180 }}
+          />
 
-            <button
-              onClick={() => {
-                setDeviceImageDate('');
-                loadDeviceImages(1);
-              }}
-              style={{ marginLeft: '5px', padding: '5px 10px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-            >
-              查看全部
-            </button>
-          </div>
+          <Button
+            onClick={() => {
+              setDeviceImageDate('');
+              loadDeviceImages(1);
+            }}
+            variant="outlined"
+          >
+            查看全部
+          </Button>
 
-          <button
-            className="stream-button"
+          <Button
             onClick={handleDeviceSnap}
             disabled={loading || !selectedDeviceCode || devices.length === 0 || isGettingStatus || isRestarting}
+            variant="contained"
+            startIcon={<CameraAlt />}
           >
             {loading ? '抓拍中...' : '设备抓拍'}
-          </button>
+          </Button>
 
-          <button
-            className="stream-button"
+          <Button
             onClick={handleGetDeviceStatus}
             disabled={loading || !selectedDeviceCode || devices.length === 0 || isGettingStatus || isRestarting}
+            variant="outlined"
+            startIcon={<Info />}
           >
             {isGettingStatus ? '获取中...' : '设备状态'}
-          </button>
+          </Button>
 
-          <button
-            className="stream-button"
+          <Button
             onClick={handleDeviceRestart}
             disabled={loading || !selectedDeviceCode || devices.length === 0 || isGettingStatus || isRestarting}
+            variant="outlined"
+            color="warning"
+            startIcon={<Refresh />}
           >
             {isRestarting ? '重启中...' : '设备重启'}
-          </button>
-
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
-        </div>
+          </Button>
+        </Box>
 
         {loading ? (
-          <div className="loading">加载中...</div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
         ) : currentImages.length === 0 ? (
-          <p>没有设备图片</p>
+          <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+            没有设备图片
+          </Typography>
         ) : (
-          <div className="files-horizontal">
+          <Grid container spacing={2}>
             {currentImages.map((file, index) => (
-              <div key={index} className="file-card image-card">
-                <img
-                  src={file.url}
-                  alt={file.path}
-                  style={{
-                    width: '330px',
-                    height: '250px',
-                    objectFit: 'cover',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => openMediaPreview(file.url, 'image')}
-                />
-                <div className="file-info">
-                  <div className="file-meta">
-                    <span>拍摄时间: {file.createdAt}</span>
-                    <span>抓拍类型: {file.snapType === 'manual-snap' ? '手动抓拍' : '自动抓拍'}</span>
-                  </div>
-                  <div className="file-actions">
-                    <button
-                      className="alarm-button"
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Card>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={file.url}
+                    alt={file.path}
+                    onClick={() => openMediaPreview(file.url, 'image')}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      拍摄时间: {file.createdAt}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      抓拍类型: {file.snapType === 'manual-snap' ? '手动抓拍' : '自动抓拍'}
+                    </Typography>
+                  </CardContent>
+                  <CardActions>
+                    <Button
+                      size="small"
                       onClick={() => setSelectedImageForAlarm(file)}
                       disabled={isCreatingAlarm}
                     >
                       报警
-                    </button>
-                  </div>
-                </div>
-              </div>
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
             ))}
-          </div>
+          </Grid>
         )}
 
         {totalDeviceImagePages > 1 && (
-          <div className="pagination">
-            {[...Array(totalDeviceImagePages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => loadDeviceImages(i + 1)}
-                className={deviceImagePage === i + 1 ? "active-page" : ""}
-                disabled={loading}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination
+              count={totalDeviceImagePages}
+              page={deviceImagePage}
+              onChange={(e, page) => loadDeviceImages(page)}
+              color="primary"
+            />
+          </Box>
         )}
-      </div>
+      </Box>
     );
   };
 
@@ -821,76 +894,77 @@ const DeviceImageAndVideoDisplay = () => {
   const renderDeviceVideoSection = () => {
     const currentVideos = getCurrentPageDeviceVideos();
     return (
-      <div className="files-section">
-        <h2>设备视频</h2>
+      <Box sx={{ mb: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
+        <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <PlayArrow sx={{ mr: 1 }} /> 设备视频
+        </Typography>
 
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* 日期选择器 */}
-          <div className="date-selector">
-            <label>选择日期: </label>
-            <input
-              type="date"
-              value={deviceVideoDate}
-              onChange={(e) => setDeviceVideoDate(e.target.value)}
-              style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
+          <TextField
+            label="选择日期"
+            type="date"
+            value={deviceVideoDate}
+            onChange={(e) => setDeviceVideoDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: 180 }}
+          />
 
-            <button
-              onClick={() => {
-                setDeviceVideoDate('');
-                loadDeviceVideos(1);
-              }}
-              style={{ marginLeft: '5px', padding: '5px 10px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-            >
-              查看全部
-            </button>
-          </div>
-        </div>
+          <Button
+            onClick={() => {
+              setDeviceVideoDate('');
+              loadDeviceVideos(1);
+            }}
+            variant="outlined"
+          >
+            查看全部
+          </Button>
+        </Box>
 
         {loading ? (
-          <div className="loading">加载中...</div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
         ) : currentVideos.length === 0 ? (
-          <p>没有设备视频</p>
+          <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+            没有设备视频
+          </Typography>
         ) : (
-          <div className="files-horizontal">
+          <Grid container spacing={2}>
             {currentVideos.map((video, index) => (
-              <div key={index} className="file-card video-card">
-                <video
-                  src={video.url}
-                  style={{
-                    width: '330px',
-                    height: '250px',
-                    objectFit: 'cover',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => openMediaPreview(video.url, 'video')}
-                />
-                <div className="file-info">
-                  <div className="file-meta">
-                    <span>录制时间: {video.createdAt}</span>
-                    <span>状态: {video.status === '1' ? '正常' : '异常'}</span>
-                  </div>
-                </div>
-              </div>
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Card>
+                  <CardMedia
+                    component="video"
+                    height="200"
+                    src={video.url}
+                    onClick={() => openMediaPreview(video.url, 'video')}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      录制时间: {video.createdAt}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      状态: {video.status === '1' ? '正常' : '异常'}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </div>
+          </Grid>
         )}
 
         {totalDeviceVideoPages > 1 && (
-          <div className="pagination">
-            {[...Array(totalDeviceVideoPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => loadDeviceVideos(i + 1)}
-                className={deviceVideoPage === i + 1 ? "active-page" : ""}
-                disabled={loading}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination
+              count={totalDeviceVideoPages}
+              page={deviceVideoPage}
+              onChange={(e, page) => loadDeviceVideos(page)}
+              color="primary"
+            />
+          </Box>
         )}
-      </div>
+      </Box>
     );
   };
 
@@ -898,112 +972,132 @@ const DeviceImageAndVideoDisplay = () => {
   const renderAlarmImageSection = () => {
     const currentImages = getCurrentPageAlarmImages();
     return (
-      <div className="files-section">
-        <h2>报警图片</h2>
+      <Box sx={{ mb: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
+        <Typography variant="h5" gutterBottom>
+          报警图片
+        </Typography>
 
-        {/* 添加AI检测操作区域 */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <button
-            className="stream-button"
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
+          <Button
             onClick={toggleSelectAllAlarmImages}
             disabled={loading || currentImages.length === 0}
+            variant="outlined"
+            startIcon={<SelectAll />}
           >
             {selectedAlarmImages.length === currentImages.length ? '取消全选' : '全选当前页'}
-          </button>
+          </Button>
 
-          <button
-            className="stream-button"
+          <Button
             onClick={handleAiVisionCheck}
             disabled={loading || selectedAlarmImages.length === 0 || isAiChecking}
+            variant="contained"
+            startIcon={isAiChecking ? <CircularProgress size={16} /> : <Warning />}
           >
             {isAiChecking ? '检测中...' : `AI检测 (${selectedAlarmImages.length})`}
-          </button>
+          </Button>
 
-          <span>已选择 {selectedAlarmImages.length} 张图片</span>
-        </div>
+          <Typography variant="body2">
+            已选择 {selectedAlarmImages.length} 张图片
+          </Typography>
+        </Box>
 
         {loading ? (
-          <div className="loading">加载中...</div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
         ) : currentImages.length === 0 ? (
-          <p>没有报警图片</p>
+          <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+            没有报警图片
+          </Typography>
         ) : (
-          <div className="files-horizontal">
+          <Grid container spacing={2}>
             {currentImages.map((file, index) => {
               const isSelected = selectedAlarmImages.some(img => img.id === file.id);
 
               return (
-                <div
-                  key={index}
-                  className={`file-card image-card ${isSelected ? 'selected' : ''}`}
-                  onClick={() => toggleAlarmImageSelection(file)}
-                >
-                  <div className="selection-indicator">
-                    {isSelected ? '✓' : ''}
-                  </div>
-                  <img
-                    src={file.url}
-                    alt={file.name || file.id}
-                    style={{
-                      width: '330px',
-                      height: '250px',
-                      objectFit: 'cover',
-                      cursor: 'pointer'
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Card
+                    sx={{
+                      position: 'relative',
+                      border: isSelected ? '2px solid' : 'none',
+                      borderColor: 'primary.main'
                     }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openMediaPreview(file.url, 'image');
-                    }}
-                  />
-                  <div className="file-info">
-                    <div className="file-meta">
-                      <span>报警时间: {file.createdAt}</span>
-                      {file.alarmType && <span>报警类型: {file.alarmType}</span>}
-                      {file.causes && (
-                        <span>
-                          引发原因: {
-                            // 处理多个原因的情况
-                            file.causes.split(',').map(cause => {
-                              const trimmedCause = cause.trim();
-                              return CAUSES_MAPPING[trimmedCause] || `未知(${trimmedCause})`;
-                            }).join('、') // 使用顿号分隔多个原因
-                          }
-                        </span>
+                    onClick={() => toggleAlarmImageSelection(file)}
+                  >
+                    {isSelected && (
+                      <CheckCircle
+                        color="primary"
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          zIndex: 1,
+                          bgcolor: 'background.paper',
+                          borderRadius: '50%'
+                        }}
+                      />
+                    )}
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={file.url}
+                      alt={file.name || file.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openMediaPreview(file.url, 'image');
+                      }}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                    <CardContent>
+                      <Typography variant="body2" color="text.secondary">
+                        报警时间: {file.createdAt}
+                      </Typography>
+                      {file.alarmType && (
+                        <Typography variant="body2" color="text.secondary">
+                          报警类型: {file.alarmType}
+                        </Typography>
                       )}
-                    </div>
-                  </div>
-                </div>
+                      {file.causes && (
+                        <Typography variant="body2" color="text.secondary">
+                          引发原因: {file.causes.split(',').map(cause => {
+                            const trimmedCause = cause.trim();
+                            return CAUSES_MAPPING[trimmedCause] || `未知(${trimmedCause})`;
+                          }).join('、')}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
               );
             })}
-          </div>
+          </Grid>
         )}
 
         {totalAlarmImagePages > 1 && (
-          <div className="pagination">
-            {[...Array(totalAlarmImagePages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => loadAlarmImages(i + 1)}
-                className={alarmImagePage === i + 1 ? "active-page" : ""}
-                disabled={loading}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination
+              count={totalAlarmImagePages}
+              page={alarmImagePage}
+              onChange={(e, page) => loadAlarmImages(page)}
+              color="primary"
+            />
+          </Box>
         )}
 
         {/* 显示AI检测结果 */}
         {renderAiResults()}
-      </div>
+      </Box>
     );
   };
 
   return (
-    <div className="app-container">
+    <Box sx={{ display: 'flex' }}>
       <Sidebar />
-
-      <div className="main-content">
-        <h1>报警分析</h1>
+      
+      <MainContent component="main">
+        <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+          报警分析
+        </Typography>
 
         {/* 设备图片区域 */}
         {renderDeviceImageSection()}
@@ -1013,64 +1107,106 @@ const DeviceImageAndVideoDisplay = () => {
 
         {/* 报警图片区域 */}
         {renderAlarmImageSection()}
-      </div>
+      </MainContent>
 
       {/* 媒体预览模态框 */}
-      {isPreviewOpen && (
-        <div className="media-preview-modal" onClick={closeMediaPreview}>
-          <div className="preview-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-preview" onClick={closeMediaPreview}>×</button>
+      <Dialog
+        open={isPreviewOpen}
+        onClose={closeMediaPreview}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          媒体预览
+          <IconButton
+            aria-label="close"
+            onClick={closeMediaPreview}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {previewMedia.type === 'image' && (
+            <img
+              src={previewMedia.url}
+              alt="预览图"
+              style={{ width: '100%', height: 'auto' }}
+            />
+          )}
 
-            {previewMedia.type === 'image' && (
-              <img
-                src={previewMedia.url}
-                alt="预览图"
-                className="preview-media"
-              />
-            )}
-
-            {previewMedia.type === 'video' && (
-              <video
-                src={previewMedia.url}
-                className="preview-media"
-                controls
-                autoPlay
-                playsInline
-              />
-            )}
-          </div>
-        </div>
-      )}
+          {previewMedia.type === 'video' && (
+            <video
+              src={previewMedia.url}
+              style={{ width: '100%', height: 'auto' }}
+              controls
+              autoPlay
+              playsInline
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* 设备状态弹窗 */}
-      {showStatusModal && (
-        <div className="media-preview-modal" onClick={() => setShowStatusModal(false)}>
-          <div className="preview-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-preview" onClick={() => setShowStatusModal(false)}>×</button>
-
-            <h3 className="status-modal-title">设备状态信息</h3>
-
-            <div className="status-content">
-              {deviceStatus ? (
-                <div className="status-grid">
-                  {Object.entries(formatDeviceStatus(deviceStatus)).map(([key, value]) => (
-                    <div key={key} className="status-item">
-                      <span className="status-key">{key}：</span>
-                      <span className="status-value">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p>未获取到设备状态数据</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog
+        open={showStatusModal}
+        onClose={() => setShowStatusModal(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          设备状态信息
+          <IconButton
+            aria-label="close"
+            onClick={() => setShowStatusModal(false)}
+            sx={{ color: (theme) => theme.palette.grey[500] }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {deviceStatus ? (
+            <Box sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                {Object.entries(formatDeviceStatus(deviceStatus)).map(([key, value]) => (
+                  <Grid item xs={12} sm={6} key={key}>
+                    <Box sx={{
+                      p: 1.5,
+                      bgcolor: 'background.default',
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        {key}
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {value}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          ) : (
+            <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+              未获取到设备状态数据
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowStatusModal(false)}>关闭</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 报警创建模态框 */}
       {renderAlarmModal()}
-    </div>
+    </Box>
   );
 };
 

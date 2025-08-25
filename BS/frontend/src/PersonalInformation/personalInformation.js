@@ -1,27 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Button, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  TextField, 
-  Snackbar, 
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar,
   Alert,
   Divider,
-  IconButton
+  IconButton,
+  Avatar,
+  Grid,
+  Card,
+  CardContent,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import LockIcon from '@mui/icons-material/Lock';
-import '../css/all.css';
+import {
+  Edit as EditIcon,
+  Lock as LockIcon,
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  LocationOn as LocationIcon,
+  Event as EventIcon,
+  VpnKey as VpnKeyIcon,
+  CheckCircle as CheckCircleIcon
+} from '@mui/icons-material';
+import { useThemeContext } from '../ThemeContext/ThemeContext'; // 导入全局主题上下文
 
 function PersonalInformation() {
   const navigate = useNavigate();
+  const { theme } = useThemeContext(); // 使用全局主题上下文
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -220,7 +236,7 @@ function PersonalInformation() {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <Typography variant="h6">加载中...</Typography>
+        <CircularProgress />
       </Box>
     );
   }
@@ -239,177 +255,242 @@ function PersonalInformation() {
 
   // 可编辑字段配置
   const editableFields = [
-    { key: 'username', label: '用户名' },
-    { key: 'email', label: '邮箱' },
-    { key: 'phone', label: '手机号' },
-    { key: 'address', label: '地址' }
+    { key: 'username', label: '用户名', icon: <PersonIcon /> },
+    { key: 'email', label: '邮箱', icon: <EmailIcon /> },
+    { key: 'phone', label: '手机号', icon: <PhoneIcon /> },
+    { key: 'address', label: '地址', icon: <LocationIcon /> }
   ];
 
   // 不可编辑字段
   const nonEditableFields = [
-    { key: 'user_id', label: '用户ID' },
-    { key: 'account', label: '账号' },
-    { 
-      key: 'create_time', 
+    { key: 'user_id', label: '用户ID', icon: <VpnKeyIcon /> },
+    { key: 'account', label: '账号', icon: <PersonIcon /> },
+    {
+      key: 'create_time',
       label: '注册时间',
-      value: userData?.create_time ? new Date(userData.create_time).toLocaleString() : '-' 
+      icon: <EventIcon />,
+      value: userData?.create_time ? new Date(userData.create_time).toLocaleString() : '-'
     }
   ];
 
   return (
-    <div className="app-container">
+    <Box sx={{ display: 'flex' }}>
       <Sidebar />
-      <div className="main-content personal-info-page">
+      <div
+        className="main-content personal-info-page"
+        style={{
+          backgroundColor: theme.palette.background.default,
+          minHeight: '100vh'
+        }}
+      >
         <Box sx={{ p: 3 }}>
-          <Typography variant="h5" sx={{ 
-            mb: 3, 
+          <Typography variant="h5" sx={{
+            mb: 4,
             fontWeight: 'bold',
-            color: '#333'
+            color: 'text.primary',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
           }}>
-            个人信息
+            <PersonIcon /> 个人信息
           </Typography>
-          
-          <Paper elevation={0} sx={{ 
-            p: 3, 
-            maxWidth: 800,
-            borderRadius: '12px',
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)'
-          }}>
-            {/* 不可编辑字段 */}
-            {nonEditableFields.map((field) => (
-              <React.Fragment key={field.key}>
-                <Box sx={{ 
-                  display: 'grid',
-                  gridTemplateColumns: '150px 1fr 80px',
-                  gap: '16px 0',
-                  alignItems: 'center'
-                }}>
-                  <Typography variant="subtitle1" sx={{ 
-                    fontWeight: '500',
-                    color: '#666'
-                  }}>
-                    {field.label}
-                  </Typography>
-                  <Typography variant="body1">
-                    {field.value || userData[field.key] || '-'}
-                  </Typography>
-                  <Button 
-                    disabled
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      color: '#999',
-                      borderColor: '#ddd',
-                      backgroundColor: '#f5f5f5',
-                      '&:hover': {
-                        backgroundColor: '#f5f5f5'
-                      }
-                    }}
-                  >
-                    不可修改
-                  </Button>
-                </Box>
-                <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              </React.Fragment>
-            ))}
 
-            {/* 可编辑字段 */}
-            {editableFields.map((field) => (
-              <React.Fragment key={field.key}>
-                <Box sx={{ 
-                  display: 'grid',
-                  gridTemplateColumns: '150px 1fr 80px',
-                  gap: '16px 0',
-                  alignItems: 'center'
-                }}>
-                  <Typography variant="subtitle1" sx={{ 
-                    fontWeight: '500',
-                    color: '#666'
-                  }}>
-                    {field.label}
-                  </Typography>
-                  
-                  {editField === field.key ? (
-                    <TextField
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      size="small"
-                      fullWidth
-                    />
-                  ) : (
-                    <Typography variant="body1">
-                      {userData[field.key] || '未设置'}
-                    </Typography>
-                  )}
-                  
-                  {editField === field.key ? (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button 
-                        variant="contained"
-                        size="small"
-                        onClick={handleEditSave}
-                      >
-                        保存
-                      </Button>
-                      <Button 
-                        variant="outlined"
-                        size="small"
-                        onClick={handleEditCancel}
-                      >
-                        取消
-                      </Button>
-                    </Box>
-                  ) : (
-                    <IconButton
-                      onClick={() => handleEditClick(field.key, userData[field.key])}
-                      sx={{
-                        color: '#1976d2',
-                        '&:hover': {
-                          backgroundColor: 'rgba(25, 118, 210, 0.08)'
-                        }
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </Box>
-                <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
-              </React.Fragment>
-            ))}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Card sx={{
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                textAlign: 'center',
+                p: 3,
+                backgroundColor: theme.palette.background.paper,
+                color: theme.palette.text.primary
+              }}>
+                <Avatar
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    mx: 'auto',
+                    mb: 2,
+                    bgcolor: 'primary.main',
+                    fontSize: '2.5rem'
+                  }}
+                >
+                  {userData.username ? userData.username.charAt(0).toUpperCase() : 'U'}
+                </Avatar>
+                <Typography variant="h6" gutterBottom>
+                  {userData.username || '未设置'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {userData.account}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<LockIcon />}
+                  onClick={handleOpenDialog}
+                  sx={{ mt: 2, borderRadius: 2 }}
+                >
+                  修改密码
+                </Button>
+              </Card>
+            </Grid>
 
-            <Box sx={{ mt: 4, textAlign: 'center' }}>
-              <Button
-                variant="contained"
-                startIcon={<LockIcon />}
-                onClick={handleOpenDialog}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: '6px',
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  backgroundColor: '#1976d2',
-                  '&:hover': {
-                    backgroundColor: '#1565c0'
-                  }
-                }}
-              >
-                修改密码
-              </Button>
-            </Box>
-          </Paper>
+            <Grid item xs={12} md={8}>
+              <Card sx={{
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                backgroundColor: theme.palette.background.paper
+              }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <VpnKeyIcon /> 账户信息
+                  </Typography>
+
+
+                  {/* 可编辑字段 */}
+                  {editableFields.map((field) => (
+                    <React.Fragment key={field.key}>
+                      <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        py: 2
+                      }}>
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          width: 150,
+                          color: 'text.secondary',
+                          flexShrink: 0
+                        }}>
+                          {field.icon}
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {field.label}
+                          </Typography>
+                        </Box>
+
+                        {editField === field.key ? (
+                          <TextField
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            size="small"
+                            fullWidth
+                            sx={{ maxWidth: 300, mr: 2 }}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton
+                                    onClick={handleEditSave}
+                                    color="primary"
+                                    size="small"
+                                  >
+                                    <CheckCircleIcon />
+                                  </IconButton>
+                                  <IconButton
+                                    onClick={handleEditCancel}
+                                    size="small"
+                                  >
+                                    <Typography variant="body2">取消</Typography>
+                                  </IconButton>
+                                </InputAdornment>
+                              )
+                            }}
+                          />
+                        ) : (
+                          <Typography variant="body1" sx={{ flexGrow: 1 }}>
+                            {userData[field.key] || '未设置'}
+                          </Typography>
+                        )}
+
+                        {editField !== field.key && (
+                          <IconButton
+                            onClick={() => handleEditClick(field.key, userData[field.key])}
+                            sx={{
+                              color: 'primary.main',
+                              '&:hover': {
+                                backgroundColor: 'primary.light',
+                                color: 'white'
+                              }
+                            }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        )}
+                      </Box>
+                      <Divider />
+                    </React.Fragment>
+                  ))}
+                  {/* 不可编辑字段 */}
+                  {nonEditableFields.map((field) => (
+                    <React.Fragment key={field.key}>
+                      <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        py: 2
+                      }}>
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          width: 150,
+                          color: 'text.secondary',
+                          flexShrink: 0
+                        }}>
+                          {field.icon}
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {field.label}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ flexGrow: 1 }}>
+                          {field.value || userData[field.key] || '-'}
+                        </Typography>
+                        <Button
+                          disabled
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.disabled',
+                            borderColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.300',
+                            backgroundColor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50',
+                            borderRadius: 2,
+                            '&:hover': {
+                              backgroundColor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50'
+                            }
+                          }}
+                        >
+                          不可修改
+                        </Button>
+                      </Box>
+                      <Divider />
+                    </React.Fragment>
+                  ))}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
 
         {/* 修改密码对话框 */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="xs" fullWidth>
-          <DialogTitle sx={{ 
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              backgroundColor: theme.palette.background.paper
+            }
+          }}
+        >
+          <DialogTitle sx={{
             fontWeight: 'bold',
-            borderBottom: '1px solid #eee',
-            pb: 2
+            backgroundColor: 'primary.main',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
           }}>
-            修改密码
+            <LockIcon /> 修改密码
           </DialogTitle>
-          <DialogContent sx={{ pt: 3 }}>
+          <DialogContent sx={{ pt: 3, pb: 2 }}>
             <TextField
               margin="normal"
               label="当前密码"
@@ -444,28 +525,24 @@ function PersonalInformation() {
               onChange={handlePasswordChange}
             />
           </DialogContent>
-          <DialogActions sx={{ 
-            p: 3,
-            borderTop: '1px solid #eee'
-          }}>
-            <Button 
+          <DialogActions sx={{ p: 3 }}>
+            <Button
               onClick={handleCloseDialog}
+              variant="outlined"
               sx={{
-                color: '#666',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                }
+                borderRadius: 2,
+                textTransform: 'none'
               }}
             >
               取消
             </Button>
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               variant="contained"
               sx={{
                 px: 3,
-                textTransform: 'none',
-                borderRadius: '4px'
+                borderRadius: 2,
+                textTransform: 'none'
               }}
             >
               确认修改
@@ -480,19 +557,22 @@ function PersonalInformation() {
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          <Alert 
-            onClose={handleCloseSnackbar} 
+          <Alert
+            onClose={handleCloseSnackbar}
             severity={snackbar.severity}
-            sx={{ 
+            sx={{
               width: '100%',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              borderRadius: 2,
+              alignItems: 'center'
             }}
+            variant="filled"
           >
             {snackbar.message}
           </Alert>
         </Snackbar>
       </div>
-    </div>
+    </Box>
   );
 }
 
