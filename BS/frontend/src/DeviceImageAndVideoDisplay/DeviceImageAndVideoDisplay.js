@@ -1096,7 +1096,7 @@ const closeMediaPreview = () => {
       
       <MainContent component="main">
         <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-          报警分析
+          设备图像视频展示
         </Typography>
 
         {/* 设备图片区域 */}

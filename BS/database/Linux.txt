@@ -1,4 +1,4 @@
--- 创建数据库（使用兼容性更好的排序规则）
+-- 创建数据库（使用MariaDB兼容的排序规则）
 DROP DATABASE IF EXISTS lianyuan_database;
 CREATE DATABASE lianyuan_database
 CHARACTER SET utf8mb4
@@ -12,22 +12,22 @@ CREATE TABLE users (
   username VARCHAR(50) NOT NULL,
   account VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(100) NOT NULL,
-  email VARCHAR(255) NULL,
+  email VARCHAR(255) DEFAULT NULL,
   address VARCHAR(255),
   phone VARCHAR(20) NOT NULL UNIQUE,
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 创建设备表（修改为device_code必填且唯一，其他字段可空）
+-- 创建设备表
 CREATE TABLE devices (
   device_id INT PRIMARY KEY AUTO_INCREMENT,
-  device_name VARCHAR(100),
+  device_name VARCHAR(100) DEFAULT NULL,
   device_code VARCHAR(20) NOT NULL UNIQUE,
-  push_url VARCHAR(255),
-  pull_url VARCHAR(255),
-  province VARCHAR(50),
-  city VARCHAR(50),
-  location VARCHAR(255),
+  push_url VARCHAR(255) DEFAULT NULL,
+  pull_url VARCHAR(255) DEFAULT NULL,
+  province VARCHAR(50) DEFAULT NULL,
+  city VARCHAR(50) DEFAULT NULL,
+  location VARCHAR(255) DEFAULT NULL,
   user_id INT NOT NULL,
   status TINYINT NOT NULL DEFAULT 1 COMMENT '1=在线,0=离线',
   install_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -48,31 +48,142 @@ CREATE TABLE device_status (
   INDEX idx_device_time (device_id, record_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 插入用户数据
+INSERT INTO users (
+  username,
+  account,
+  password,
+  email,
+  address,
+  phone,
+  create_time
+) VALUES (
+  '1234567890',
+  '123',
+  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW',
+  NULL,
+  NULL,
+  '17357053826',
+  '2025-08-11 14:51:32'
+);
+
+INSERT INTO users (
+  username,
+  account,
+  password,
+  email,
+  address,
+  phone,
+  create_time
+) VALUES (
+  '人2',
+  '123456',
+  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW',
+  NULL,
+  NULL,
+  '17357053825',
+  '2025-08-11 14:51:33'
+);
+
+INSERT INTO users (
+  username,
+  account,
+  password,
+  email,
+  address,
+  phone,
+  create_time
+) VALUES (
+  '人3',
+  '123456789',
+  '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW',
+  NULL,
+  NULL,
+  '17357053824',
+  '2025-08-11 14:51:34'
+);
+
+-- 插入设备数据
+INSERT INTO devices (
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  '云台',
+  '865522078460315',
+  'null1',
+  '测试',
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:43:00'
+);
+
+INSERT INTO devices (
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  '枪机',
+  '869446071341783',
+  'null2',
+  'https://check1-video.oss-cn-hangzhou.aliyuncs.com/uploads_device_865522078460315_202507_865522078460315_20250710111734.mp4',
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:43:00'
+);
+
+INSERT INTO devices (
+  device_name,
+  device_code,
+  push_url,
+  pull_url,
+  province,
+  city,
+  location,
+  user_id,
+  status,
+  install_time
+) VALUES (
+  '枪机',
+  '869446071341782',
+  'null2',
+  'null',
+  'guangdong',
+  'shenzhen',
+  '1hao',
+  1,
+  1,
+  '2025-08-12 02:44:00'
+);
+
 -- 创建用户设置表
 CREATE TABLE user_settings (
   setting_id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
-  background_color VARCHAR(20) DEFAULT '#f5f7fa',
-  sidebar_color VARCHAR(20) DEFAULT '#f8f9fa',
-  font_family VARCHAR(50) DEFAULT 'Arial, sans-serif',
-  video_resolution VARCHAR(20) DEFAULT '720p',
   theme_mode ENUM('light', 'dark') DEFAULT 'light',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- 插入用户数据（合并格式）
-INSERT INTO users (user_id, username, account, password, email, address, phone, create_time) VALUES
-(1, '1234567890', '123', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053826', '2025-08-11 14:51:32'),
-(2, '人2', '123456', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053825', '2025-08-11 14:51:33'),
-(3, '人3', '123456789', '$2b$10$eipnqmC88G9kvi2GScSBBOjES0KU0WIAl0BMDlSWhkSsY7P56Z0XW', NULL, NULL, '17357053824', '2025-08-11 14:51:34');
-
--- 插入设备数据（合并格式，不指定device_id让自增主键自动生成）
-INSERT INTO devices (device_name, device_code, push_url, pull_url, province, city, location, user_id, status, install_time) VALUES
-('云台', '865522078460315', 'null1', '点击按钮获取播流地址', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00'),
-('枪机', '869446071341783', 'null2', '播流地址还没开放', 'guangdong', 'shenzhen', '1hao', 1, 1, '2025-08-12 02:43:00');
-
-
 
 
