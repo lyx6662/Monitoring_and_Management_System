@@ -2,3 +2,5 @@ npm install
 
 npm start
 
+//build目录
+serve -s build -l 3000 --single

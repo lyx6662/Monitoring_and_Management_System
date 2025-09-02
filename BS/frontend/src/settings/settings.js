@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
-import Sidebar from '../Sidebar/Sidebar';
+import SidebarAll from '../SidebarAll/SidebarAll';
 
 // 自定义样式组件
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -74,7 +74,7 @@ const Setting = () => {
     const fetchSettings = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://116.62.54.160:5000/api/user/settings', {
+        const res = await axios.get('http://localhost:5000/api/user/settings', {
           headers: { Authorization: `Bearer ${token}` }
         });
         // 只保留主题模式设置
@@ -95,7 +95,7 @@ const Setting = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://116.62.54.160:5000/api/user/settings', settings, {
+      await axios.put('http://localhost:5000/api/user/settings', settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -126,7 +126,7 @@ const Setting = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <Sidebar />
+        <SidebarAll />
         <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
           <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'center' }}>
             <Box sx={{ width: '100%' }}>

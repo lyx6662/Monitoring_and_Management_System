@@ -94,7 +94,7 @@ function Login() {
   // 获取验证码
   const fetchCaptcha = async () => {
     try {
-      const response = await axios.get('http://116.62.54.160:5000/api/captcha');
+      const response = await axios.get('http://localhost:5000/api/captcha');
       setCaptcha({
         imgUrl: response.data.imgUrl,
         userAnswer: ''
@@ -131,7 +131,7 @@ function Login() {
       // 验证验证码
       if (showCaptcha) {
         try {
-          const verifyRes = await axios.post('http://116.62.54.160:5000/api/verify-captcha', {
+          const verifyRes = await axios.post('http://localhost:5000/api/verify-captcha', {
             imgUrl: captcha.imgUrl,
             userAnswer: captcha.userAnswer
           });
@@ -149,7 +149,7 @@ function Login() {
       }
 
       const response = await axios.post(
-        'http://116.62.54.160:5000/api/auth/login',
+        'http://localhost:5000/api/auth/login',
         { account, password }
       );
 
@@ -217,7 +217,7 @@ function Login() {
     try {
       // 验证验证码
       try {
-        const verifyRes = await axios.post('http://116.62.54.160:5000/api/verify-captcha', {
+        const verifyRes = await axios.post('http://localhost:5000/api/verify-captcha', {
           imgUrl: captcha.imgUrl,
           userAnswer: captchaAnswer
         });
@@ -234,7 +234,7 @@ function Login() {
       }
 
       const response = await axios.post(
-        'http://116.62.54.160:5000/api/auth/register',
+        'http://localhost:5000/api/auth/register',
         {
           username,
           account,

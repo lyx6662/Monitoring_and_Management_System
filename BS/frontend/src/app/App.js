@@ -11,18 +11,22 @@ import {
   Paper,
   Container
 } from '@mui/material';
-import DeviceList from "../devicelist/DeviceList";
-import DevicesLocationInformation from "../DevicesLocationInformation/DevicesLocationInformation";
-import Login from "../login/login";
-import PictureAndAICheck from "../PictureAndAICheck/PictureAndAICheck";
-import EquipmentVideoPlayback from "../EquipmentVideoPlayback/EquipmentVideoPlayback";
+//视频和图片
+import DeviceList from "../pictureAndvideo/devicelist/DeviceList";
+import DevicesLocationInformation from "../pictureAndvideo/DevicesLocationInformation/DevicesLocationInformation";
+import PictureAndAICheck from "../pictureAndvideo/PictureAndAICheck/PictureAndAICheck";
+import EquipmentVideoPlayback from "../pictureAndvideo/EquipmentVideoPlayback/EquipmentVideoPlayback";
+import DeviceImageAndVideoDisplay from "../pictureAndvideo/DeviceImageAndVideoDisplay/DeviceImageAndVideoDisplay";
+//铁芯接地
+import IronCoreGrounding from "../IronCoreGrounding/IronCore/IronCore";
+//其他
 import Settings from "../settings/settings";
-import DeviceImageAndVideoDisplay from "../DeviceImageAndVideoDisplay/DeviceImageAndVideoDisplay";
+import Login from "../login/login";
 import PersonalInformation from '../PersonalInformation/personalInformation';
 import { useAuth } from '../auth/auth';
 import DOMPurify from "dompurify";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Sidebar from '../Sidebar/Sidebar';
+import SidebarAll from '../SidebarAll/SidebarAll';
 import axios from 'axios';
 import { ThemeProvider as AppThemeProvider, useThemeContext } from '../ThemeContext/ThemeContext';
 
@@ -127,7 +131,7 @@ function Home() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://116.62.54.160:5000/api/ai-chat", {
+      const res = await fetch("http://localhost:5000/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -147,7 +151,7 @@ function Home() {
   return (
     <AppContainer>
       {/* Sidebar Navigation */}
-      <Sidebar />
+                                <SidebarAll />       
 
       {/* Main Content Area */}
       <MainContent component="main">
@@ -218,7 +222,7 @@ function AppContent() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await axios.get('http://116.62.54.160:5000/api/user/settings', {
+          const res = await axios.get('http://localhost:5000/api/user/settings', {
             headers: { Authorization: `Bearer ${token}` }
           });
           // 应用样式
@@ -252,6 +256,7 @@ function AppContent() {
                 <Route path="/DeviceImageAndVideoDisplay" element={<DeviceImageAndVideoDisplay />} />
                 <Route path="/personalInformation" element={<PersonalInformation />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/IronCoreGrounding" element={<IronCoreGrounding />} />
               </Routes>
             </RouteGuard>
           } />

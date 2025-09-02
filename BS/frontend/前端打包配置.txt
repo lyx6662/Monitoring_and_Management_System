@@ -1,0 +1,160 @@
+npm install --save-dev webpack-obfuscator
+npm install @craco/craco --save-dev
+npm install -g serve
+下载依赖
+
+
+
+2. 配置文件设置
+
+craco.config.js 完整配置
+
+const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { whenProd } = require('@craco/craco');
+const JavaScriptObfuscator = require('webpack-obfuscator');
+
+module.exports = {
+  webpack: {
+    configure: (webpackConfig, { env, paths }) => {
+      whenProd(() => {
+        // 禁用 source map
+        webpackConfig.devtool = false;
+        
+        // 移除 source map 相关插件
+        webpackConfig.plugins = webpackConfig.plugins.filter(
+          plugin => !(
+            plugin.constructor.name === 'SourceMapDevToolPlugin' ||
+            plugin.constructor.name === 'EvalSourceMapDevToolPlugin'
+          )
+        );
+
+        // 输出文件配置
+        webpackConfig.output = {
+          ...webpackConfig.output,
+          filename: 'static/js/[name].[contenthash:8].js',
+          chunkFilename: 'static/js/[name].[contenthash:8].chunk.js',
+        };
+
+        // 优化配置
+        webpackConfig.optimization = {
+          ...webpackConfig.optimization,
+          minimize: true,
+          minimizer: [
+            new TerserPlugin({
+              terserOptions: {
+                compress: {
+                  drop_console: true,
+                  drop_debugger: true,
+                  pure_funcs: ['console.log', 'console.info', 'console.debug'],
+                },
+                mangle: {
+                  toplevel: true,
+                  keep_fnames: false,
+                },
+                output: {
+                  comments: false,
+                  beautify: false,
+                },
+              },
+              extractComments: false,
+              parallel: true,
+            }),
+            new CssMinimizerPlugin({
+              minimizerOptions: {
+                preset: ['default', { discardComments: { removeAll: true } }],
+              },
+            }),
+          ],
+          splitChunks: {
+            chunks: 'all',
+            cacheGroups: {
+              vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: 'vendors',
+                chunks: 'all',
+                priority: 10,
+              },
+              common: {
+                name: 'common',
+                minChunks: 2,
+                chunks: 'all',
+                priority: 5,
+                reuseExistingChunk: true,
+              },
+            },
+          },
+        };
+
+        // 添加代码混淆
+        webpackConfig.plugins.push(
+          new JavaScriptObfuscator({
+            rotateStringArray: true,
+            stringArray: true,
+            stringArrayThreshold: 0.75,
+            simplify: true,
+            shuffleStringArray: true,
+            selfDefending: true,
+            disableConsoleOutput: true,
+          }, ['vendors.*.js'])
+        );
+
+        // 确保生产模式
+        webpackConfig.mode = 'production';
+      });
+
+      // 配置别名
+      webpackConfig.resolve.alias = {
+        ...webpackConfig.resolve.alias,
+        '@': path.resolve(__dirname, 'src'),
+      };
+
+      return webpackConfig;
+    },
+  },
+  devServer: {
+    port: 3000,
+    open: true,
+    hot: true,
+    historyApiFallback: true,
+  },
+};
+
+
+.env.production 环境变量
+text
+GENERATE_SOURCEMAP=false
+INLINE_RUNTIME_CHUNK=false
+3. 构建脚本
+package.json 添加验证脚本
+json
+{
+  "scripts": {
+    "build": "craco build",
+    "build:secure": "npm run clean && npm run build && npm run verify-build",
+    "clean": "rm -rf build && rm -rf node_modules/.cache",
+    "verify-build": "node verify-build.js",
+    "serve": "serve -s build -p 8080"
+  }
+}
+
+
+
+
+
+
+
+
+
+# 执行构建
+npm run build
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../Sidebar/Sidebar';
+
 import {
   Box,
   Typography,
@@ -34,6 +34,7 @@ import {
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { useThemeContext } from '../ThemeContext/ThemeContext'; // 导入全局主题上下文
+import SidebarAll from '../SidebarAll/SidebarAll';
 
 function PersonalInformation() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ function PersonalInformation() {
       }
 
       try {
-        const response = await fetch('http://116.62.54.160:5000/api/user/profile', {
+        const response = await fetch('http://localhost:5000/api/user/profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -129,7 +130,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://116.62.54.160:5000/api/user/update-profile', {
+      const response = await fetch('http://localhost:5000/api/user/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +197,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://116.62.54.160:5000/api/user/change-password', {
+      const response = await fetch('http://localhost:5000/api/user/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -275,7 +276,7 @@ function PersonalInformation() {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <Sidebar />
+      <SidebarAll />
       <div
         className="main-content personal-info-page"
         style={{

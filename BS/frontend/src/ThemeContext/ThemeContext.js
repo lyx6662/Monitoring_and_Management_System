@@ -22,7 +22,7 @@ export const ThemeProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const res = await fetch('http://116.62.54.160:5000/api/user/settings', {
+          const res = await fetch('http://localhost:5000/api/user/settings', {
             headers: { Authorization: `Bearer ${token}` }
           });
           
@@ -75,7 +75,7 @@ export const ThemeProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await fetch('http://116.62.54.160:5000/api/user/settings', {
+        await fetch('http://localhost:5000/api/user/settings', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
