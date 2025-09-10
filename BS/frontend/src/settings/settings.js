@@ -19,6 +19,7 @@ import {
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 import SidebarAll from '../SidebarAll/SidebarAll';
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 // 自定义样式组件
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -74,7 +75,7 @@ const Setting = () => {
     const fetchSettings = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/user/settings', {
+        const res = await axios.get(`${API_URL}/user/settings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         // 只保留主题模式设置
@@ -95,7 +96,7 @@ const Setting = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/user/settings', settings, {
+      await axios.put(`${API_URL}/user/settings`, settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

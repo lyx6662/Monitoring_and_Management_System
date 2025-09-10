@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import Sidebar from '../SidebarVideo/SidebarVideo';
 import { useThemeContext } from '../../ThemeContext/ThemeContext';
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 // 添加样式组件
 const MainContent = styled(Box)(({ theme }) => ({
@@ -94,7 +95,7 @@ const PictureAndAICheck = () => {
       setLoading(true);
       setError('');
 
-      const res = await fetch('http://localhost:5000/api/oss/files?directory=check_1/', {
+      const res = await fetch(`${API_URL}/oss/files?directory=check_1/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -127,7 +128,7 @@ const PictureAndAICheck = () => {
       setLoading(true);
       setError('');
 
-      const res = await fetch('http://localhost:5000/api/oss/files?directory=check_2/', {
+      const res = await fetch(`${API_URL}/oss/files?directory=check_2/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

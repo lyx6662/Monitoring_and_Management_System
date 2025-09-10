@@ -29,6 +29,7 @@ import {
   Divider
 } from '@mui/material';
 import Sidebar from '../SidebarVideo/SidebarVideo';
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 // 设备类型选项
 const deviceTypes = [
@@ -102,7 +103,7 @@ const FormContainer = styled(Paper)(({ theme }) => ({
 // ========== 封装的 API 方法 ========== //
 const fetchDeviceList = async (setDevices, setError, setLoading, userId) => {
   try {
-    const response = await axios.get("http://localhost:5000/api/devices", {
+    const response = await axios.get(`${API_URL}/devices`, {
       params: { user_id: userId }
     });
     setDevices(response.data);
@@ -120,7 +121,7 @@ const addNewDevice = async (newDevice, setSuccess, setError, fetchDevices) => {
       throw new Error("设备代码不能为空");
     }
 
-    const response = await axios.post("http://localhost:5000/api/devices", {
+    const response = await axios.post(`${API_URL}/devices`, {
       ...newDevice,
       push_url: `未设置`,
       pull_url: "播流地址还没开放",
@@ -144,7 +145,7 @@ const updateDevice = async (deviceId, deviceData, setSuccess, setError, fetchDev
       throw new Error("设备代码不能为空");
     }
 
-    await axios.put(`http://localhost:5000/api/devices/${deviceId}`, {
+    await axios.put(`${API_URL}/devices/${deviceId}`, {
       ...deviceData,
       user_id: undefined
     });
@@ -244,7 +245,7 @@ const DeviceList = () => {
 
   const handleDelete = async (device_id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/devices/${device_id}`);
+      await axios.delete(`${API_URL}/devices/${device_id}`);
       setSuccess("设备删除成功");
       setTimeout(() => setSuccess(""), 3000);
       setDevices(devices.filter(device => device.device_id !== device_id));

@@ -4,7 +4,9 @@
 #include <QMainWindow>
 #include <QStackedWidget>
 #include "widget.h"
-#include "genericdevicewidget.h" // 新增: 包含新页面的头文件
+// 新增: 包含新页面的头文件
+#include "partialdischargewidget.h"
+#include "microwaterwidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,12 +25,16 @@ public:
 private slots:
     void showSerialCommPage();
     void showHomePage();
-    void showGenericDevicePage(); // 新增: 跳转到通用设备页面的槽
+    // 新增: 跳转到新页面的槽函数
+    void showPartialDischargePage();
+    void showMicroWaterPage();
 
 private:
     Ui::MainWindow *ui;
     QStackedWidget *stackedWidget;
     Widget *serialCommWidget;
-   GenericDeviceWidget *genericDeviceWidget; // 新增: 新页面的成员指针
+    // 新增: 新页面的成员指针
+    PartialDischargeWidget *partialDischargeWidget;
+    MicroWaterWidget *microWaterWidget;
 };
 #endif // MAINWINDOW_H

@@ -24,6 +24,8 @@ const routeTitles = {
   '/': '首页',
   '/devices': '设备列表',
   '/IronCoreGrounding': '铁芯接地', // 新增路由标题
+  '/TransformerPartialDischarge': '变压器局放', // 新增路由标题
+  '/MicroWater': '微水检测', // 新增路由标题
   '/personalInformation': '个人信息编辑',
   '/settings': '设置',
 };
@@ -107,6 +109,30 @@ const SidebarAll = () => {
                 <IronCoreGroundingIcon />
               </ListItemIcon>
               <ListItemText primary="铁芯接地" />
+            </ListItemButton>
+          </StyledNavLink>
+        </ListItem>
+
+        {/* 新增变压器局放导航项 */}
+        <ListItem disablePadding>
+          <StyledNavLink to="/TransformerPartialDischarge">
+            <ListItemButton>
+              <ListItemIcon>
+                <IronCoreGroundingIcon />
+              </ListItemIcon>
+              <ListItemText primary="变压器局放" />
+            </ListItemButton>
+          </StyledNavLink>
+        </ListItem>
+        
+        {/* 新增微水检测导航项 */}
+        <ListItem disablePadding>
+          <StyledNavLink to="/MicroWater">
+            <ListItemButton>
+              <ListItemIcon>
+                <IronCoreGroundingIcon />
+              </ListItemIcon>
+              <ListItemText primary="微水检测" />
             </ListItemButton>
           </StyledNavLink>
         </ListItem>

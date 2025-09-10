@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import { useThemeContext } from '../ThemeContext/ThemeContext'; // 导入全局主题上下文
 import SidebarAll from '../SidebarAll/SidebarAll';
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 function PersonalInformation() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ function PersonalInformation() {
       }
 
       try {
-        const response = await fetch('http://localhost:5000/api/user/profile', {
+        const response = await fetch(`${API_URL}/user/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -130,7 +131,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/user/update-profile', {
+      const response = await fetch(`${API_URL}/user/update-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +198,7 @@ function PersonalInformation() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/user/change-password', {
+      const response = await fetch(`${API_URL}/user/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

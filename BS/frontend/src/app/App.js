@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import {
   ThemeProvider as MUIThemeProvider,
   createTheme,
@@ -19,6 +20,11 @@ import EquipmentVideoPlayback from "../pictureAndvideo/EquipmentVideoPlayback/Eq
 import DeviceImageAndVideoDisplay from "../pictureAndvideo/DeviceImageAndVideoDisplay/DeviceImageAndVideoDisplay";
 //铁芯接地
 import IronCoreGrounding from "../IronCoreGrounding/IronCore/IronCore";
+//变压器局放
+import TransformerDischarge from "../Arcing/TransformerPartialDischarge/TransformerPartialDischarge";
+//微水检测
+import MicroWater from "../MicroWater/MicroWater/MicroWater";
+
 //其他
 import Settings from "../settings/settings";
 import Login from "../login/login";
@@ -29,7 +35,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import SidebarAll from '../SidebarAll/SidebarAll';
 import axios from 'axios';
 import { ThemeProvider as AppThemeProvider, useThemeContext } from '../ThemeContext/ThemeContext';
-
+// 在文件顶部添加环境变量定义
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 // 创建Material-UI主题
 const theme = createTheme({
   palette: {
@@ -123,7 +130,7 @@ function Home() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
-
+  
   // AI 聊天提交
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -131,7 +138,7 @@ function Home() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/ai-chat", {
+      const res = await fetch(`${API_URL}/ai-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -151,7 +158,7 @@ function Home() {
   return (
     <AppContainer>
       {/* Sidebar Navigation */}
-                                <SidebarAll />       
+      <SidebarAll />
 
       {/* Main Content Area */}
       <MainContent component="main">
@@ -214,7 +221,7 @@ function Home() {
 
 function AppContent() {
   const { theme } = useThemeContext(); // 使用主题上下文
-  
+
   // 添加用户设置相关的副作用
   useEffect(() => {
     // 页面加载时获取并应用用户设置
@@ -222,7 +229,7 @@ function AppContent() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await axios.get('http://localhost:5000/api/user/settings', {
+          const res = await axios.get(`${API_URL}/user/settings`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           // 应用样式
@@ -255,8 +262,10 @@ function AppContent() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/DeviceImageAndVideoDisplay" element={<DeviceImageAndVideoDisplay />} />
                 <Route path="/personalInformation" element={<PersonalInformation />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
                 <Route path="/IronCoreGrounding" element={<IronCoreGrounding />} />
+                <Route path="/TransformerPartialDischarge" element={<TransformerDischarge />} />
+                <Route path="/MicroWater" element={<MicroWater />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </RouteGuard>
           } />

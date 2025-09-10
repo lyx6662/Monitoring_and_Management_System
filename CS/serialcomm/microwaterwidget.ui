@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>GenericDeviceWidget</class>
- <widget class="QWidget" name="GenericDeviceWidget">
+ <class>MicroWaterWidget</class>
+ <widget class="QWidget" name="MicroWaterWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>通用设备监测</string>
+   <string>微水监测</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
@@ -76,24 +76,14 @@
       <string>设备控制</string>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>监测类型:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="deviceComboBox">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item>
+       <item>
+        <widget class="QLabel" name="label_21">
+         <property name="text">
+          <string>数据端口: 8082</string>
+         </property>
+        </widget>
+       </item>
+       <item>
        <widget class="QPushButton" name="startButton">
         <property name="text">
          <string>开始采集</string>
@@ -119,101 +109,10 @@
    <item>
     <layout class="QGridLayout" name="gridLayout_4">
      <item row="0" column="0">
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="currentIndex">
-        <number>0</number>
+       <widget class="QGroupBox" name="dataGroupBox">
+       <property name="title">
+        <string>微水数据</string>
        </property>
-       <widget class="QWidget" name="pdTab">
-        <attribute name="title">
-         <string>变压器局放</string>
-        </attribute>
-        <layout class="QFormLayout" name="formLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>测量时间:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="pdTimeLineEdit"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>放电类型:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="pdTypeLineEdit"/>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>放电频次 (次):</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="pdFreqLineEdit"/>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>总放电次数 (次):</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="pdTotalLineEdit"/>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_8">
-           <property name="text">
-            <string>放电量 (pC):</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="pdAmountLineEdit"/>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>信号强度:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QLineEdit" name="pdStrengthLineEdit"/>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_10">
-           <property name="text">
-            <string>通信状态:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLineEdit" name="pdCommStatusLineEdit"/>
-         </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>告警状态:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QLineEdit" name="pdAlarmStatusLineEdit"/>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="mwTab">
-        <attribute name="title">
-         <string>微水</string>
-        </attribute>
         <layout class="QFormLayout" name="formLayout_2">
          <item row="0" column="0">
           <widget class="QLabel" name="label_12">
@@ -296,7 +195,6 @@
           <widget class="QLineEdit" name="mwAlarmStatusLineEdit"/>
          </item>
         </layout>
-       </widget>
       </widget>
      </item>
      <item row="0" column="1">
@@ -313,31 +211,30 @@
      </item>
     </layout>
    </item>
-   <!-- 新增返回按钮 -->
    <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="returnButton">
-         <property name="text">
-          <string>返回主页</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="returnButton">
+       <property name="text">
+        <string>返回主页</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <resources/>

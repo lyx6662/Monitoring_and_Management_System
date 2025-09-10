@@ -43,6 +43,7 @@ const theme = createTheme({
     },
   },
 });
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 function Login() {
   // 登录状态
@@ -94,7 +95,7 @@ function Login() {
   // 获取验证码
   const fetchCaptcha = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/captcha');
+      const response = await axios.get(`${API_URL}/captcha`);
       setCaptcha({
         imgUrl: response.data.imgUrl,
         userAnswer: ''
@@ -131,7 +132,7 @@ function Login() {
       // 验证验证码
       if (showCaptcha) {
         try {
-          const verifyRes = await axios.post('http://localhost:5000/api/verify-captcha', {
+          const verifyRes = await axios.post(`${API_URL}/verify-captcha`, {
             imgUrl: captcha.imgUrl,
             userAnswer: captcha.userAnswer
           });
@@ -148,10 +149,9 @@ function Login() {
         }
       }
 
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/login',
-        { account, password }
-      );
+      // 修改所有API调用，统一使用环境变量
+      const response = await axios.post(`${API_URL}/auth/login`, { account, password });
+      // 其他API调用也类似修改
 
       // 存储Token和用户信息
       localStorage.setItem('token', response.data.token);
@@ -217,7 +217,7 @@ function Login() {
     try {
       // 验证验证码
       try {
-        const verifyRes = await axios.post('http://localhost:5000/api/verify-captcha', {
+        const verifyRes = await axios.post(`${API_URL}/verify-captcha`, {
           imgUrl: captcha.imgUrl,
           userAnswer: captchaAnswer
         });
@@ -234,7 +234,7 @@ function Login() {
       }
 
       const response = await axios.post(
-        'http://localhost:5000/api/auth/register',
+        `${API_URL}/auth/register`,
         {
           username,
           account,

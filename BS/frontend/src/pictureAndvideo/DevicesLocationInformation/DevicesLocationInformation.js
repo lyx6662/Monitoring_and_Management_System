@@ -57,8 +57,8 @@ const DevicesLocationInformation = () => {
     const initializeMap = async () => {
       try {
         // 从后端获取地图配置
-        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-        const response = await fetch(`${API_BASE_URL}/api/map-config`);
+        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+        const response = await fetch(`${API_BASE_URL}/map-config`);
         if (!response.ok) throw new Error('获取地图配置失败');
         const { amapKey, plugins } = await response.json();
 
@@ -113,8 +113,8 @@ const DevicesLocationInformation = () => {
 
     const loadMapScript = async () => {
       try {
-        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-        const response = await fetch(`${API_BASE_URL}/api/map-config`);
+        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+        const response = await fetch(`${API_BASE_URL}/map-config`);
 
         console.log('响应状态:', response.status);
 

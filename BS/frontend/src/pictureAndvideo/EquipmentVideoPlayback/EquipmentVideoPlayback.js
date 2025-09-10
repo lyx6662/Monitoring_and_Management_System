@@ -50,6 +50,7 @@ import {
   NavigateNext as NextIcon
 } from '@mui/icons-material';
 import Sidebar from '../SidebarVideo/SidebarVideo';
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 // 自定义样式组件
 const MainContent = styled(Box)(({ theme }) => ({
@@ -328,9 +329,14 @@ const EquipmentVideoPlayback = () => {
     };
   };
 
-  // 获取设备列表（保持原有逻辑）
+  // 获取设备列表
   useEffect(() => {
     const fetchDevices = async () => {
+      if (!API_URL) {
+        setError("API 地址未配置，请检查 .env 文件并重启服务。");
+        setLoading(false);
+        return;
+      }
       try {
         const token = localStorage.getItem('token');
         let userId = '';
@@ -344,7 +350,8 @@ const EquipmentVideoPlayback = () => {
           }
         }
 
-        let url = 'http://localhost:5000/api/devices';
+        // 使用  前缀
+        let url = `${API_URL}/devices`;
         if (userId) {
           url += `?user_id=${userId}`;
         }
@@ -479,12 +486,12 @@ const EquipmentVideoPlayback = () => {
     setCurrentDeviceCode(device.device_code);
   };
 
-  // 上传功能（保持原有逻辑）
+  // 上传功能
   const handleUpload = async (file, fileName) => {
     try {
       setUploadProgress(0);
 
-      const res = await fetch('http://localhost:5000/api/oss/upload', {
+      const res = await fetch(`${API_URL}/oss/upload`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -641,7 +648,9 @@ const EquipmentVideoPlayback = () => {
     return actionNames[actionKey] || '操作';
   };
 
-  // 设备控制通用请求函数（保持原有逻辑）
+  // ===================================================================
+  // ▼▼▼ 核心修正 2: 修改 sendControlRequest 函数 ▼▼▼
+  // ===================================================================
   const sendControlRequest = async (url, method = 'POST', data = null, showSuccessMessage = true) => {
     if (!currentDeviceCode) {
       showMessage('请先选择并播放一个设备', 'warning');
@@ -652,9 +661,10 @@ const EquipmentVideoPlayback = () => {
       const actionKey = getActionKey(url);
       setControlStatus(prev => ({ ...prev, [actionKey]: 'loading' }));
 
+      // 将硬编码的 'http://localhost:5000' 替换为 API_URL
       const response = await axios({
         method,
-        url: `http://localhost:5000${url}`,
+        url: `${API_URL}${url}`, // 使用 API_URL 变量
         data,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -684,34 +694,35 @@ const EquipmentVideoPlayback = () => {
       }, 2000);
     }
   };
+  // ===================================================================
 
   // 云台方向控制（保持原有逻辑）
   const startRotation = (direction) => {
     if (!currentDeviceCode) return;
     setIsRotating(true);
-    sendControlRequest(`/api/device-preset/rotation/${direction}?device_code=${currentDeviceCode}`, 'POST', null, false);
+    sendControlRequest(`/device-preset/rotation/${direction}?device_code=${currentDeviceCode}`, 'POST', null, false);
   };
 
   const stopRotation = () => {
     if (!currentDeviceCode || !isRotating) return;
     setIsRotating(false);
-    sendControlRequest(`/api/device-preset/rotation/15?device_code=${currentDeviceCode}`, 'POST', null, false);
+    sendControlRequest(`/device-preset/rotation/15?device_code=${currentDeviceCode}`, 'POST', null, false);
   };
 
   // 云台复位（保持原有逻辑）
   const resetRotation = () => {
-    sendControlRequest(`/api/device-preset/reset?device_code=${currentDeviceCode}`);
+    sendControlRequest(`/device-preset/reset?device_code=${currentDeviceCode}`);
   };
 
   // 变焦控制（保持原有逻辑）
   const controlZoom = (zoomType) => {
-    sendControlRequest(`/api/device/decrease/${zoomType}?device_code=${currentDeviceCode}`, 'POST', null, false);
+    sendControlRequest(`/device/decrease/${zoomType}?device_code=${currentDeviceCode}`, 'POST', null, false);
   };
 
   // 加热控制（保持原有逻辑）
   const controlHeating = (action) => {
     const actionText = action === 1 ? '开启' : '关闭';
-    sendControlRequest('/api/device/heating-action', 'POST', {
+    sendControlRequest('/device/heating-action', 'POST', {
       device_code: currentDeviceCode,
       heating_action: action
     }).then(() => {
@@ -721,22 +732,22 @@ const EquipmentVideoPlayback = () => {
 
   // 雨刮控制（保持原有逻辑）
   const controlWiper = () => {
-    sendControlRequest(`/api/device-preset/wiper?device_code=${currentDeviceCode}`);
+    sendControlRequest(`/device-preset/wiper?device_code=${currentDeviceCode}`);
   };
 
   // 拍摄视频（保持原有逻辑）
   const captureVideo = () => {
-    sendControlRequest('/api/hub/device-video-by-device-code', 'POST', {
+    sendControlRequest('/hub/device-video-by-device-code', 'POST', {
       device_code: currentDeviceCode
     });
   };
 
   // 设备抓拍（保持原有逻辑）
   const captureDeviceSnap = () => {
-    sendControlRequest(`/api/hub/device-snap-by-device-code?deviceCode=${currentDeviceCode}`);
+    sendControlRequest(`/hub/device-snap-by-device-code?deviceCode=${currentDeviceCode}`);
   };
 
-  // 获取流地址（保持原有逻辑）
+  // 获取流地址
   const fetchStreamUrl = async (deviceId, deviceCode) => {
     const currentDevice = devices.find(d => d.device_id === deviceId);
     if (currentDevice?.pull_url && currentDevice.pull_url !== "播流地址还没开放") {
@@ -751,13 +762,13 @@ const EquipmentVideoPlayback = () => {
     try {
       setLoading(true);
       const streamResponse = await axios.post(
-        `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+        `${API_URL}/devices/${deviceId}/stream-url`,
         { device_code: deviceCode }
       );
 
       if (streamResponse.data.streamUrl) {
         await axios.put(
-          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+          `${API_URL}/devices/${deviceId}/stream-url`,
           { pull_url: streamResponse.data.streamUrl }
         );
 
@@ -784,27 +795,29 @@ const EquipmentVideoPlayback = () => {
   const startStreamAvailabilityCheck = (deviceId) => {
     stopStreamAvailabilityCheck(deviceId);
     streamCheckCountRef.current[deviceId] = 0;
-
+  
     const intervalId = setInterval(async () => {
       const currentDevice = devicesRef.current.find(d => d.device_id === deviceId);
       const currentStreamUrl = currentDevice?.pull_url;
-
+  
       if (!currentDevice || !currentStreamUrl || currentStreamUrl === "播流地址还没开放") {
         stopStreamAvailabilityCheck(deviceId);
         return;
       }
-
+  
       if (streamCheckCountRef.current[deviceId] >= 8) {
         stopStreamAvailabilityCheck(deviceId);
         setStreamAvailability(prev => ({ ...prev, [deviceId]: false }));
-        showMessage(`播流地址访问超时，请检查设备状态`, 'error');
+        showMessage(`播流地址访问超时，自动关闭播流`, 'error');
+        // 6次失败后自动关闭播流
+        handleStopStream(currentDevice.device_code, deviceId);
         return;
       }
-
+  
       try {
         const isAvailable = await checkStreamAvailability(currentStreamUrl);
         streamCheckCountRef.current[deviceId] += 1;
-
+  
         if (isAvailable) {
           stopStreamAvailabilityCheck(deviceId);
           setStreamAvailability(prev => ({ ...prev, [deviceId]: true }));
@@ -812,17 +825,22 @@ const EquipmentVideoPlayback = () => {
         } else if (streamCheckCountRef.current[deviceId] >= 8) {
           stopStreamAvailabilityCheck(deviceId);
           setStreamAvailability(prev => ({ ...prev, [deviceId]: false }));
-          showMessage(`播流地址访问超时，请检查设备状态`, 'error');
+          showMessage(`播流地址访问超时,请检查设备状态,自动关闭播流`, 'error');
+          // 6次失败后自动关闭播流
+          handleStopStream(currentDevice.device_code, deviceId);
         }
       } catch (error) {
         streamCheckCountRef.current[deviceId] += 1;
         if (streamCheckCountRef.current[deviceId] >= 8) {
           stopStreamAvailabilityCheck(deviceId);
           setStreamAvailability(prev => ({ ...prev, [deviceId]: false }));
+          showMessage(`播流地址访问超时，自动关闭播流`, 'error');
+          // 6次失败后自动关闭播流
+          handleStopStream(currentDevice.device_code, deviceId);
         }
       }
     }, 6000);
-
+  
     setStreamCheckIntervals(prev => ({ ...prev, [deviceId]: intervalId }));
   };
 
@@ -864,7 +882,7 @@ const EquipmentVideoPlayback = () => {
     };
   }, [streamCheckIntervals, hlsPlayer]);
 
-  // 关闭播流（保持原有逻辑）
+  // 关闭播流
   const handleStopStream = async (deviceCode, deviceId) => {
     if (!deviceCode) {
       setError("设备代码不能为空，无法关闭播流");
@@ -893,13 +911,13 @@ const EquipmentVideoPlayback = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:5000/api/devices/stop-stream",
+        `${API_URL}/devices/stop-stream`,
         { deviceCode }
       );
 
       if (response.data.success) {
         await axios.put(
-          `http://localhost:5000/api/devices/${deviceId}/stream-url`,
+          `${API_URL}/devices/${deviceId}/stream-url`,
           { pull_url: "播流地址还没开放" }
         );
 
@@ -975,7 +993,10 @@ const EquipmentVideoPlayback = () => {
                   )}
                   {currentDevice ? currentDevice.device_name : '无设备'}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                {/* =================================================================== */}
+                {/* ▼▼▼ 核心修正 1: 添加 component="div" 修复 Hydration 错误 ▼▼▼ */}
+                {/* =================================================================== */}
+                <Typography variant="body2" color="text.secondary" component="div">
                   {currentDevice && `设备ID: ${currentDevice.device_id}`}
                   {currentStream && (
                     <Chip 
@@ -986,6 +1007,7 @@ const EquipmentVideoPlayback = () => {
                     />
                   )}
                 </Typography>
+                {/* =================================================================== */}
               </Box>
 
               {/* 控制按钮区域 */}

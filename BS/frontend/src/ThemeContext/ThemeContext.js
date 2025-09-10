@@ -2,6 +2,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createTheme } from '@mui/material/styles';
 
+const API_URL = process.env.REACT_APP_API_BASE_URL;
+
+
 const ThemeContext = createContext();
 
 export const useThemeContext = () => {
@@ -22,7 +25,7 @@ export const ThemeProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const res = await fetch('http://localhost:5000/api/user/settings', {
+          const res = await fetch(`${API_URL}/user/settings`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           
@@ -75,7 +78,7 @@ export const ThemeProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await fetch('http://localhost:5000/api/user/settings', {
+        await fetch(`${API_URL}/user/settings`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
